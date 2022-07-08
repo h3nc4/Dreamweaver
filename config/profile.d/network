@@ -1,0 +1,46 @@
+#!/bin/sh
+
+port() {
+	doas lsof -i :"$1"
+}
+
+nettest() {
+	echo "pinging h3nc4.com..."
+	ping -c 3 h3nc4.com
+}
+
+update() {
+	# Check the installed version of Neovim and it's latest version
+	nvlocal=$(nvim --version | head -n 1 | awk '{print $2}')
+	nvremote=$(wget -qO- https://api.github.com/repos/neovim/neovim/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+	# Update all pipx packages
+	pipx upgrade-all &
+	# Update the system
+	doas apt update && doas apt upgrade -y
+	# Update the command-not-found database
+	doas update-command-not-found &
+	# If the remote version is different from the local version, ask the user if they want to update
+	[ -n "$nvremote" ] && [ "$nvlocal" != "$nvremote" ] && {
+		echo "Update Neovim from $nvlocal to $nvremote? [y/N]"
+		read -r answer
+		[ "$answer" = "y" ] && get_neovim
+	}
+	# Wait for any pending jobs to finish
+	wait
+}
+
+myip() {
+	echo "Private IPv4: $(hostname -I | awk '{print $1}')"
+	echo "IPv6: $(ip -6 addr show | grep -oP '(?<=inet6\s)[\da-f:]+(?=/64)' | head -n 1)"
+	echo "Public IPv4: $(curl -s4 https://ifconfig.me)"
+}
+
+gen_ifup() { # Generate the /etc/network/interfaces file for the given SSID and PSK
+	[ -z "$2" ] && echo "Usage: gen_ifup <SSID> <PSK>" >&2 && return 1
+	echo "auto lo" | tee "$HOME/interfaces.example"
+	echo "iface lo inet loopback" | tee -a "$HOME/interfaces.example"
+	echo "auto wlp1s0" | tee -a "$HOME/interfaces.example"
+	echo "iface wlp1s0 inet dhcp" | tee -a "$HOME/interfaces.example"
+	echo "	wpa-ssid \"$1\"" | tee -a "$HOME/interfaces.example"
+	echo "	wpa-psk \"$2\"" | tee -a "$HOME/interfaces.example"
+}
