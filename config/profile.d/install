@@ -1,0 +1,34 @@
+#!/bin/sh
+
+build_neovim() {
+	(
+		doas apt-get update >/dev/null 2>&1 &&
+		doas apt-get upgrade -y >/dev/null 2>&1 &&
+		doas apt-get install ninja-build gettext cmake unzip wget curl build-essential -y >/dev/null 2>&1 &&
+		wget -qO- "https://github.com/neovim/neovim/archive/refs/tags/stable.tar.gz" |
+			tar -xC /dev/shm &&
+		cd /dev/shm/neovim-stable && make CMAKE_BUILD_TYPE=RelWithDebInfo &&
+		echo "Building Neovim" &&
+		cd build && cpack -G DEB && doas rm /usr/share/applications/nvim.desktop &&
+		doas apt install ./nvim-linux64.deb -y &&
+		apt-cache depends neovim | awk '/Depends:/ {print $2}' | xargs doas apt-get install -y
+	) && echo "Installed Neovim";
+	rm -rf /dev/shm/neovim-stable
+}
+
+get_neovim() {
+	mkdir -p "$HOME/.local/bin" "$HOME/.local/share"
+	wget -qO- "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz" | tee /tmp/nvim-linux64.tar.gz >/dev/null &&
+	wget -qO- "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz.sha256sum" | tee /tmp/sum >/dev/null &&
+	(cd /tmp && sha256sum -c sum) &&
+	rm -rf "$HOME/.local/bin/nvim" &&
+	tar -xzf /tmp/nvim-linux64.tar.gz -C "$HOME/.local/share" &&
+	ln -sf "$HOME/.local/share/nvim-linux64/bin/nvim" "$HOME/.local/bin/nvim" &&
+	echo "Neovim updated successfully." &&
+	rm -f /tmp/nvim-linux64.tar.gz /tmp/sum
+}
+
+fromgit() { 
+	git clone -q --single-branch --no-tags -b build "$1" "$2" &&
+	cd "$2" && doas ./install
+}
