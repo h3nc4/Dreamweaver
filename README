@@ -1,0 +1,44 @@
+Dreamweaver
+
+Dreamweaver is a script to install and configure a fresh Debian installation with my daily-use desktop.
+
+Usage
+
+1. Clone the repository:
+
+	`git clone https://github.com/h3nc4/Dreamweaver.git`
+
+2. Run the script:
+
+	`Dreamweaver/install`
+
+Flags
+
+The script accepts the following optional flags:
+
+- `-o`: Include optional packages in the installation.
+- `-d`: Install development packages.
+- `-g`: Install gaming-related packages and allow proprietary software.
+- `-v`: Set up virtualization tools (e.g., QEMU, KVM).
+- `-m <mirror>`: Specify a custom Debian or Devuan mirror URL. If omitted, the script defaults to `http://deb.debian.org/debian/` or `http://deb.devuan.org/merged/`
+
+Main Contents
+
+- `install`: The main script for installation and configuration. Covers all setup steps.
+- `config/packages.csv`: A CSV file listing the packages to install.
+- `config/bash/`: Bash configuration files used in the setup.
+- `config/profile.d/`: Scripts to be sourced by the user's profile.
+- `utils/`: Contains auxiliary scripts for installing and configuring specific applications.
+
+Usage Notes
+
+- If running on Devuan, use the `-m` flag to specify a Devuan mirror. Otherwise, the script defaults to a Debian mirror.
+- For optimal security, use this script on an encrypted system. The setup includes enabling auto-login and passwordless privileges.
+
+License
+
+Dreamweaver is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License or (at your option) any later version.
+
+Dreamweaver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+See `LICENSE` for more information.

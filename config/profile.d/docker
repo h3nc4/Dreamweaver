@@ -1,0 +1,38 @@
+#!/bin/sh
+
+dstop() {
+	if [ -z "$1" ]; then
+		docker stop $(docker ps -a -q)
+		return
+	fi
+	docker stop "$*"
+}
+
+dkill() {
+	if [ -z "$1" ]; then
+		docker kill $(docker ps -a -q)
+		return
+	fi
+	docker kill "$*"
+}
+
+drm() {
+	if [ -z "$1" ]; then
+		docker rm -f $(docker ps -a -q)
+		return
+	fi
+	docker rm -f "$*"
+}
+
+dpurge() {
+	drm
+	echo y | docker system prune -a
+}
+
+dstart() {
+	if [ -z "$2" ]; then
+		docker run -d --name tmp "$1" sleep infinity
+		return
+	fi
+	docker run -d --name "$2" "$1" sleep infinity
+}

@@ -1,0 +1,120 @@
+ddd() {
+	dd status=progress bs=1M if="$1" of="$2" conv=fsync
+	sync
+}
+
+md() {
+	pandoc "$1" -t plain | less
+}
+
+roffpdf() {
+	preconv "$1" | eqn -Tpdf | tbl | groff -mms -Tpdf | zathura -
+}
+
+cmp256() {
+	diff <(sha256sum "$1") "$2"
+}
+
+cmp512() {
+	diff <(sha512sum "$1") "$2"
+}
+
+cmp256f() {
+	diff <(sha256sum "$1") <(sha256sum "$2")
+}
+
+cmp512f() {
+	diff <(sha512sum "$1") <(sha512sum "$2")
+}
+
+killport() {
+	doas fuser -k "$1"/tcp
+}
+
+netsend() {
+	nc "$1" "$2"
+}
+
+netsendf() {
+	nc "$1" "$2" <"$3"
+}
+
+netlisten() {
+	nc -lq0 -p "$1"
+}
+
+netlistenf() {
+	nc -lq0 -p "$1" >"$2"
+}
+
+finddir() {
+	find "$2" -type d -name "$1" 2>/dev/null
+}
+
+findfile() {
+	find "$2" -type f -name "$1" 2>/dev/null
+}
+
+cdlink() {
+	cd "$(readlink -f "$1")" || echo "Failed to cd into the link destination."
+}
+
+nvimclear() {
+	doas killall nvim >/dev/null 2>&1
+	rm -rf "$HOME/.local/state/nvim/" "$HOME/.cache/nvim/" "$HOME/.local/share/nvim/" && (cd "$HOME/.config/nvim/" && git clean -fdx)
+}
+
+chwallpaper() {
+	if [ -z "$1" ]; then
+		xwallpaper --zoom "$(find "$HOME/media/wallpapers/" -type f | shuf -n 1)"
+		return
+	fi
+	xwallpaper --zoom "$1"
+}
+
+playMoOII() {
+	dosbox -c "mount c $HOME/.local/games/Master_of_Orion_II/mastori2" -c "c:" -c "Orion2.exe" -conf "$HOME/.local/games/Master_of_Orion_II/dosbox.conf"
+}
+
+crop() {
+	base="${1%.*}"                            # Extract the base filename (without extension)
+	ext="${1##*.}"                            # Extract the file extension
+	convert "$1" -crop "$2" "$base.crop.$ext" # Append .crop and the original extension
+}
+
+safecp() {
+	rsync -avhc --progress "$1" "$2"
+}
+
+removei386() {
+	doas apt autopurge --allow-remove-essential $(dpkg -l | grep -i :i386 | awk '{print $2}') &&
+	doas dpkg --remove-architecture i386
+}
+
+createswap() {
+	if [ -z "$1" ]; then
+		echo "Usage: createswap <size> [filename]" >&2
+		return 1
+	fi
+	swapfile="${2:-/swapfile}" # Default to /swapfile
+	doas fallocate -l "$1" "$swapfile" &&
+	doas chmod 600 "$swapfile" &&
+	doas mkswap "$swapfile" &&
+	doas swapon "$swapfile" &&
+	echo "$swapfile none swap sw 0 0" | doas tee -a /etc/fstab >/dev/null
+}
+
+removeswap() {
+	if [ -z "$1" ]; then
+		echo "Usage: removeswap <filename>" >&2
+		return 1
+	fi
+	swapfile="$1"
+	if ! grep -q "^$swapfile " /etc/fstab; then
+		echo "Error: $swapfile is not listed as a swap file in /etc/fstab."
+		return 1
+	fi
+	doas swapoff "$swapfile" &&
+	doas rm -f "$swapfile" &&
+	doas sed -i "\|^$swapfile |d" /etc/fstab
+}

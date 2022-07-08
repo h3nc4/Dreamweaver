@@ -1,0 +1,4 @@
+#!/bin/sh
+
+xrandr | grep "HDMI-1 connected" >/dev/null && xrandr --output HDMI-1 --primary --mode 1920x1080 --left-of eDP-1 || xrandr --output HDMI-1 --off --output eDP-1 --auto
+xwallpaper --zoom "$(find "$HOME/media/wallpapers/" -type f | shuf -n 1)"
