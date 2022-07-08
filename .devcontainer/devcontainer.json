@@ -1,0 +1,21 @@
+{
+	"name": "Development environment",
+	"dockerFile": "Dockerfile",
+	"mounts": ["type=bind,source=${localEnv:HOME},target=/home/dev"],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/h3nc4/dreamweaver,type=bind,consistency=cached",
+	"workspaceFolder": "/home/h3nc4/dreamweaver",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-azuretools.vscode-docker",
+				"ms-vscode-remote.remote-containers",
+				"GitHub.copilot",
+				"GitHub.copilot-chat",
+				"ms-vscode-remote.remote-wsl",
+				"donjayamanne.githistory",
+				"eamodio.gitlens",
+				"DavidAnson.vscode-markdownlint"
+			]
+		}
+	}
+}

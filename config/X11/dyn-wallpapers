@@ -1,0 +1,4 @@
+#!/bin/sh
+
+sleep 300
+while xwallpaper --zoom "$(find "$HOME/media/wallpapers/" -type f | shuf -n 1)"; do sleep 300; done

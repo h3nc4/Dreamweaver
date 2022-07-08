@@ -1,0 +1,10 @@
+#!/bin/sh
+set -e
+
+# This script makes a tarball of the files in the current directory, ignoring dirs and files started with .
+CURRENT=$(pwd)
+rm -f dreamweaver.tgz
+cd ..
+tar -czf dreamweaver.tgz --exclude=".*" "$(basename "$CURRENT")"
+mv dreamweaver.tgz "$CURRENT/"
+cd "$CURRENT"
