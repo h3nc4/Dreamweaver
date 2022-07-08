@@ -1,0 +1,4 @@
+#!/bin/sh
+
+xrandr | grep "HDMI-A-0 connected" >/dev/null && xrandr --output HDMI-A-0 --primary --mode 1920x1080 --left-of eDP || xrandr --output HDMI-A-0 --off --output eDP  --scale 1x1 --auto 
+pkill -USR1 dyn-wallpapers

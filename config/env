@@ -1,0 +1,71 @@
+#!/bin/sh
+
+# Path
+export PATH="$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+
+# Terminal colors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+export BLACK="\[\033[90m\]"
+export RED="\[\033[91m\]"
+export GREEN="\[\033[92m\]"
+export YELLOW="\[\033[93m\]"
+export BLUE="\[\033[94m\]"
+export PURPLE="\[\033[95m\]"
+export CYAN="\[\033[96m\]"
+export WHITE="\[\033[97m\]"
+export RESET="\[\033[0m\]"
+export BOLD="\[\033[1m\]"
+
+# XDG Base Directory Specification
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_DATA_DIRS="/usr/local/share:/usr/share"
+export XDG_CONFIG_DIRS="/etc/xdg"
+XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export XDG_RUNTIME_DIR
+
+# Xorg
+export USERXSESSION="$XDG_CACHE_HOME/X11/xsession"
+export USERXSESSIONRC="$XDG_CACHE_HOME/X11/xsessionrc"
+export ALTUSERXSESSION="$XDG_CACHE_HOME/X11/Xsession"
+export ERRFILE="$XDG_CACHE_HOME/X11/xsession-errors"
+export XAUTHORITY="$XDG_RUNTIME_DIR/Xauthority"
+export XINITRC="$XDG_CONFIG_HOME/X11/xinitrc"
+export XSERVERRC="$XDG_CONFIG_HOME/X11/xserverrc"
+export ICEAUTHORITY="$XDG_CACHE_HOME/ICEauthority"
+
+# Cleaner home
+export GNUPGHOME="$XDG_DATA_HOME"/gnupg
+export LESSHISTFILE=/dev/null
+export GTK2_RC_FILES="$XDG_CONFIG_HOME/gtk-2.0/gtkrc"
+export W3M_DIR="$XDG_STATE_HOME/w3m"
+export WGETRC="$XDG_CONFIG_HOME/wgetrc"
+export PARALLEL_HOME="$XDG_CONFIG_HOME/parallel"
+export FFMPEG_DATADIR="$XDG_CONFIG_HOME/ffmpeg"
+export PYTHON_HISTORY="$XDG_STATE_HOME/python/history"
+export PYTHONPYCACHEPREFIX="$XDG_CACHE_HOME/python"
+export PYTHONUSERBASE="$XDG_DATA_HOME/python"
+export SQLITE_HISTORY="$XDG_DATA_HOME/sqlite_history"
+export NODE_REPL_HISTORY="$XDG_DATA_HOME/node_repl_history"
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+export AZURE_CONFIG_DIR=$XDG_DATA_HOME/azure
+export AWS_SHARED_CREDENTIALS_FILE="$XDG_CONFIG_HOME/aws/credentials"
+export AWS_CONFIG_FILE="$XDG_CONFIG_HOME/aws/config"
+export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
+
+# Various
+export BROWSER='firefox'
+export TERM='st-256color'
+export MANPAGER='less -R'
+export PAGER='less'
+export EDITOR='nano'
+export VISUAL="$EDITOR"
+export LIBVIRT_DEFAULT_URI='qemu:///system'
+export LANG='en_US.UTF-8'
+export LC_ALL='en_US.UTF-8'
+export LC_CTYPE='en_US.UTF-8'
+export CHROME_EXECUTABLE='/usr/bin/chromium'
+GPG_TTY="$(tty 2>/dev/null || echo "/dev/tty2")"
+export GPG_TTY

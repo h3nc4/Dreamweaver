@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+set -f
+
+user_host="$USER@$(hostname)"
+read -r capacity </sys/class/power_supply/BAT1/capacity
+read -r status </sys/class/power_supply/BAT1/status
+
+while xsetroot -name " $(date) | ${capacity}% (${status}) | $user_host "; do
+	sleep 1
+	read -r capacity </sys/class/power_supply/BAT1/capacity
+	read -r status </sys/class/power_supply/BAT1/status
+done &

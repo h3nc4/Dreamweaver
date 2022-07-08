@@ -1,0 +1,52 @@
+#!/bin/sh
+# These can be either sources or called via cli
+# which is useful for keybindings
+
+ytmp3() {
+	[ -z "$1" ] && {
+		yt-dlp --extract-audio --audio-format --output "$HOME/media/music/%(title)s.%(ext)s" "$(xclip -o)"
+	} || [ -z "$2" ] && {
+		echo "Warning: No quality specified, defaulting to 5"
+		yt-dlp --extract-audio --audio-format mp3 -o '%(title)s.%(ext)s' "$1"
+	} || yt-dlp --extract-audio --audio-format mp3 --audio-quality "$2" -o '%(title)s.%(ext)s' "$1"
+}
+
+ytmp4() {
+	[ -z "$1" ] && {
+		yt-dlp --format "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" --output "$HOME/media/vids/%(title)s.%(ext)s" "$(xclip -o)"
+	} || yt-dlp --format "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" "$1"
+}
+
+ytwebm() {
+	[ -z "$1" ] && {
+		yt-dlp --format "bv*[ext=webm]+ba[ext=webm]/b[ext=webm]" --output "$HOME/media/vids/%(title)s.%(ext)s" "$(xclip -o)"
+	} || yt-dlp --format "bv*[ext=webm]+ba[ext=webm]/b[ext=webm]" "$1"
+}
+
+ytstream() {
+	[ -z "$1" ] && {
+		mpv --ytdl-format="bestvideo[height<=1080]+bestaudio/best" "$(xclip -o)"
+	} || [ -z "$2" ] && {
+		echo "Warning: No quality specified, defaulting to 1080p"
+		mpv --ytdl-format="bestvideo[height<=1080]+bestaudio/best" "$1"
+	} || mpv --ytdl-format="bestvideo[height<=$2]+bestaudio/best" "$1"
+}
+
+ytstreamp3() {
+	[ -z "$1" ] && {
+		mpv --ytdl-format="bestaudio/best" "$(xclip -o)"
+	} || mpv --ytdl-format="bestaudio/best" "$1"
+}
+
+ytopus() {
+	[ -z "$1" ] && {
+		yt-dlp --extract-audio --audio-format opus --output "$HOME/media/music/%(title)s.%(ext)s" "$(xclip -o)"
+	} || yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s' "$1"
+}
+
+[ -z "$1" ] ||
+	case "$1" in
+	mp3) ytmp3;;
+	mp4) ytmp4;;
+	stream) ytstream;;
+	esac

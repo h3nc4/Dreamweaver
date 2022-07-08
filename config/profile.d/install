@@ -1,0 +1,4 @@
+fromgit() { 
+	git clone -q --single-branch --no-tags -b build "$1" "$2" &&
+	cd "$2" && doas ./install
+}

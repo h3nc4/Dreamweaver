@@ -1,0 +1,53 @@
+ctar() { # tar -czf
+	if [ "$#" -lt 2 ]; then
+		echo "Usage: ctar <output-file> <source1> [source2 ...]" 1>&2
+		return 1
+	fi
+	local out="$1"
+	shift
+	tar -czf - "$@" | pv -s "$(du -sb "$@" | awk '{sum += $1} END {print sum}')" >"$out"
+}
+
+ctarh() { # tar --exclude=".*" -czf
+	if [ "$#" -lt 2 ]; then
+		echo "Usage: ctarh <output-file> <source1> [source2 ...]" 1>&2
+		return 1
+	fi
+	local out="$1"
+	shift
+	tar --exclude=".*" -czf - "$@" | pv -s "$(du -sb --exclude=".*" "$@" | awk '{sum += $1} END {print sum}')" >"$out"
+}
+
+ctarssl() { # tar -czf with encryption
+	if [ "$#" -lt 2 ]; then
+		echo "Usage: ctarssl <output-file> <source1> [source2 ...]" 1>&2
+		return 1
+	fi
+	local out="$1"
+	shift
+	tar -czf - "$@" | openssl enc -aes-256-cbc -pbkdf2 -salt | tee "$out" >/dev/null
+}
+
+untar() { # tar -xzf
+	local target=${2:-.}
+	if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+		echo "Usage: untar <input-file> [target]" 1>&2
+		return 1
+	fi
+	pv "$1" | tar -xzf - -C "$target"
+	unset target
+}
+
+untarssl() {
+	local target=${2:-.}
+	if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+		echo "Usage: untarssl <input-file> [target]" 1>&2
+		return 1
+	fi
+	openssl enc -d -aes-256-cbc -pbkdf2 -in "$1" | tar -xzf - -C "$target"
+	unset target
+}
+
+tarlist() { # tar -tf
+	tar -tf "$1"
+}

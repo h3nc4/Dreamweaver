@@ -1,0 +1,115 @@
+core,fonts-freefont-ttf,Fonts
+core,man-db,Manual pages
+core,manpages,Manual pages
+core,keyutils,Scripts for mounting encrypted partitions
+core,openssh-client,Secure remote access
+core,telnet,Unsecure remote access
+core,rfkill,Manages wireless devices
+core,nmap,Network scanner
+core,net-tools,Network tools
+core,ufw,Uncomplicated Firewall
+core,util-linux,Essential system utilities
+core,sysstat,System statistics
+core,lsof,Lists open files
+core,progress,Check progress of coreutils
+core,pv,Pipe progress viewer
+core,tmux,Terminal multiplexer
+core,lm-sensors,Hardware monitoring
+core,xserver-xorg,Display server
+core,xinit,Startup scripts for Xorg
+core,compton,Modern compositor for Xorg
+core,xclip,Clipboard manager
+core,xwallpaper,Sets up wallpapers
+core,maim,Screen capture
+core,arandr,Monitor configuration
+core,brightnessctl,Controls brightness on a hardware level
+core,lf,File manager
+core,ueberzug,Image preview
+core,ffmpegthumbnailer,Thumbnails
+core,nsxiv,Image viewer
+core,imagemagick,Image manipulation
+core,mpv,Media player
+core,ffmpeg,Everything multimedia files
+core,python3-taglib,Media file metadata
+core,pipewire-pulse,Audio server compatible with PulseAudio
+core,wireplumber,Session manager for PipeWire
+core,pulsemixer,PulseAudio mixer
+core,materia-gtk-theme,Dark theme
+core,firefox,Browser
+core,keepassxc,Password manager
+core,newsboat,RSS reader
+core,command-not-found,Suggests packages for missing commands
+core,bash-completion,Tab completion
+core,gcc,Compilation
+core,make,Compilation
+core,libreadline-dev,Compilation
+core,git,Version control system
+core,nano,Simple text editor by GNU
+core,zip,Zip file creation
+core,unzip,Zip file extraction
+core,xz-utils,XZ compression
+core,pipx,Python package manager
+core,xdg-utils,xdg-open
+core,libfile-mimeinfo-perl,File type detection for xdg-open
+core,rsync,File synchronization
+core,tor,Onion services access
+core,torsocks,Onion services access
+core,aerc,Email client
+core,tty-clock,Curses clock
+core,fonts-noto-cjk,Chinese chars
+opt,signal-desktop,Private messaging
+opt,brave-browser,Alternative browser
+opt,libreoffice-writer,Office suite
+opt,libreoffice-calc,Office suite
+opt,simplescreenrecorder,Screen recording
+opt,bluez,Bluetooth
+opt,rfkill,Bluetooth
+games,steam-installer,Steam
+games,mesa-vulkan-drivers,Steam
+games,libglx-mesa0:i386,Steam
+games,mesa-vulkan-drivers:i386,Steam
+games,libgl1-mesa-dri:i386,Steam
+games,wine,Wine
+games,wine32,Wine
+games,wine64,Wine
+games,winetricks,Wine
+dev,codium,Code editor
+dev,groff,Documentation
+dev,pandoc,Documentation
+dev,libxft-dev,wm compilation
+dev,libxinerama-dev,wm compilation
+dev,libxkbfile-dev,wm compilation
+dev,libharfbuzz-dev,terminal compilation
+dev,libfribidi-dev,terminal compilation
+dev,docker-ce,Docker
+dev,docker-buildx-plugin,Docker
+dev,docker-compose-plugin,Docker
+dev,sqlite3,Databases
+dev,sqlitebrowser,Databases
+dev,software-properties-common,Essential tools
+dev,build-essential,Essential tools
+dev,gdb,Compilation
+dev,cmake,Compilation
+dev,clang,Compilation
+dev,ninja-build,Compilation
+dev,fakeroot,Compilation
+dev,pkg-config,Compilation
+dev,libgtk-3-dev,Compilation
+dev,python3-dev,Python development
+dev,python3-pip,Python development
+dev,python3-venv,Python development
+dev,graphviz,Python development
+dev,nodejs,Node.js
+dev,npm,Node.js
+dev,openjdk-17-jdk,Java
+dev,openjdk-17-doc,Java
+dev,openjdk-17-source,Java
+dev,libmpv-dev,Video development
+dev,perl,Perl
+dev,chromium,Core browser
+dev,shellcheck,Check if shell scripts follow standards
+virt,virt-manager,Frontend
+virt,qemu-system-x86,QEMU for x86 and x86_64
+virt,qemu-utils,QEMU utilities
+virt,libvirt-daemon-system,Libvirt daemon
+virt,ovmf,UEFI firmware

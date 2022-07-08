@@ -1,0 +1,32 @@
+startvirt() {
+	doas systemctl start libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket &&
+	doas systemctl start libvirtd virtlogd polkit
+}
+
+stopvirt() {
+	doas systemctl stop libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket &&
+	doas systemctl stop libvirtd virtlogd polkit
+}
+
+startdocker() {
+	doas systemctl start docker.socket &&
+	doas systemctl start docker containerd
+}
+
+stopdocker() {
+	doas systemctl stop docker.socket &&
+	doas systemctl stop docker containerd
+}
+
+startbt() {
+	rfkill block bluetooth
+	sleep 1
+	rfkill unblock bluetooth
+	rfkill unblock all
+	doas systemctl start bluetooth
+}
+
+stopbt() {
+	doas systemctl stop bluetooth
+	rfkill block bluetooth
+}

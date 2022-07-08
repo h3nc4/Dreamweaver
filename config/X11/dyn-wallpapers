@@ -1,0 +1,18 @@
+#!/bin/sh
+
+wallpapers=$(find "$HOME/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
+trap 'kill $!' USR1
+trap 'kill $!; reload=1' USR2
+
+if [ -z "$wallpapers" ]; then
+	exit 1
+fi
+
+while true; do
+	for wallpaper in $wallpapers; do
+		xwallpaper --zoom "$HOME/media/wallpapers/$wallpaper"
+		sleep 300 & wait $!
+		[ "$reload" = 1 ] && { unset reload; break; }
+	done
+	wallpapers=$(find "$HOME/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
+done

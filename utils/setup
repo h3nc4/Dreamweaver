@@ -1,0 +1,16 @@
+#!/bin/sh
+
+apt-get update -qq
+
+apt-get install -y ntp ntpdate opendoas || exit 1
+
+# sync time
+/usr/sbin/ntpdate -s time.nist.gov
+
+# If OGUSER is not set, set it to the user 1000
+OGUSER=${OGUSER:-$(id -un 1000)}
+
+# Config doas
+echo "permit nopass nolog keepenv $OGUSER as root" >/etc/doas.conf
+chown 0:0 /etc/doas.conf
+chmod 400 /etc/doas.conf
