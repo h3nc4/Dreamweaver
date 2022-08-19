@@ -2,49 +2,49 @@ core,fonts-freefont-ttf,Fonts
 core,man-db,Manual pages
 core,manpages,Manual pages
 core,keyutils,Allows scripts for mounting encrypted partitions
-core,openssh-client,Network utilities
-core,telnet,Network utilities
-core,nmap,Network utilities
-core,net-tools,Network utilities
-core,ufw,Network utilities
-core,util-linux,System utilities
-core,sysstat,System utilities
-core,lsof,System utilities
-core,progress,System utilities
-core,pv,System utilities
-core,tmux,System utilities
-core,lm-sensors,System utilities
+core,openssh-client,SSH client for remote access
+core,telnet,Unsecure remote access
+core,nmap,Network scanner
+core,net-tools,Network tools
+core,ufw,Uncomplicated Firewall
+core,util-linux,Essential system utilities
+core,sysstat,System statistics
+core,lsof,Lists open files
+core,progress,Check progress of a coreutils
+core,pv,Pipe progress viewer
+core,tmux,Terminal multiplexer
+core,lm-sensors,Hardware monitoring
 core,xserver-xorg,Display server
-core,xinit,Display server
-core,compton,Display server
-core,xclip,Display server
-core,xwallpaper,Display server
-core,maim,Display server
-core,arandr,Display server
-core,brightnessctl,Display server
+core,xinit,Allows startup scripts for X11
+core,compton,Modern compositor for X11
+core,xclip,Clipboard manager
+core,xwallpaper,Sets up wallpapers
+core,maim,Screen capture
+core,arandr,Monitor configuration
+core,brightnessctl,Controls brightness on a hardware level
 core,lf,File manager
-core,ueberzug,File manager
-core,ffmpegthumbnailer,File manager
-core,pipewire-pulse,Audio
-core,wireplumber,Audio
-core,pulsemixer,Audio
-core,nsxiv,Image viewer
+core,ueberzug,Image preview
+core,ffmpegthumbnailer,Thumbnails
 core,mpv,Media player
+core,ffmpeg,Everything multimedia files
+core,pipewire-pulse,Audio server compatible with PulseAudio
+core,wireplumber,Session manager for PipeWire
+core,pulsemixer,PulseAudio mixer
+core,nsxiv,Image viewer
 core,zathura,PDF reader
 core,gnome-themes-extra,adwaita
 core,firefox,Browser
-core,ffmpeg,Browser
 core,keepassxc,Password manager
 core,newsboat,RSS reader
-core,command-not-found,Command line QoL
-core,bash-completion,Command line QoL
-core,nano,Editors
-core,git,Editors
-core,ripgrep,Editors
-core,python3-pynvim,Editors
-core,zip,Compression
-core,unzip,Compression
-core,xz-utils,Compression
+core,command-not-found,Suggests packages for missing commands
+core,bash-completion,Tab completion
+core,git,Version control system
+core,nano,Simple text editor by GNU
+core,ripgrep,Fast search tool used by nvim
+core,python3-pynvim,Python client for Neovim
+core,zip,Zip file creation
+core,unzip,Zip file extraction
+core,xz-utils,XZ compression
 core,pipx,Python package manager
 core,libfile-mimeinfo-perl,File type detection for xdg-open
 opt,signal-desktop,Private messaging

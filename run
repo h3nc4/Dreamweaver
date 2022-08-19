@@ -64,7 +64,7 @@ sudo sed -i 's/bookworm/testing/g' /etc/apt/sources.list
 echo 'deb http://deb.debian.org/debian unstable main' | sudo tee /etc/apt/sources.list.d/debian-unstable.list >/dev/null
 
 # Lower the priority of unstable packages
-sudo tee /etc/apt/preferences.d/unstable.pref >/dev/null <<EOF
+sudo tee /etc/apt/preferences.d/unstable.pref >/dev/null <<'EOF'
 Package: *
 Pin: release a=testing
 Pin-Priority: 990
@@ -90,8 +90,8 @@ EOF
 sudo apt-get update >/dev/null 2>&1
 
 # Set the time so secure connections can be made
-sudo apt-get install -y ntpdate -qq
-sudo ntpdate -s a.ntp.br || sudo ntpdate -s b.ntp.br || sudo ntpdate -s c.ntp.br
+sudo apt-get install -y ntp -qq
+sudo systemctl enable --now ntp
 
 # Update the system expecting no errors
 sudo apt-get update -qq || {
@@ -154,7 +154,7 @@ doas apt-get install -y $(awk -F, -v opt="$OPTIONALS" -v dev="$DEVPACKS" -v game
 echo "Configuring the system."
 
 # Add user to necessary groups
-doas usermod -aG tty,video,audio "$USER"
+doas usermod -aG tty,video,audio,disk "$USER"
 
 doas apt-get update -qq & # Populate the command-not-found cache
 
@@ -198,9 +198,9 @@ GRUB_DISTRIBUTOR=Debian
 GRUB_CMDLINE_LINUX_DEFAULT="quiet"
 GRUB_CMDLINE_LINUX=""
 GRUB_DISABLE_OS_PROBER=true
-GRUB_BACKGROUND=/boot/grub/end.jpg
+GRUB_BACKGROUND=/boot/grub/end.jpeg
 EOF
-doas cp pics/end.jpg /boot/grub/
+doas cp pics/end.jpeg /boot/grub/
 doas update-grub
 
 # Config Xorg
@@ -210,7 +210,7 @@ touch "$HOME/.config/monitors" # Add a xrandr script to this file
 
 # Enable touchpad tapping
 doas mkdir -p /etc/X11/xorg.conf.d
-doas tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<EOF
+doas tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<'EOF'
 Section "InputClass"
 Identifier "libinput touchpad catchall"
 MatchIsTouchpad "on"
@@ -320,21 +320,17 @@ doas chmod +x /etc/initramfs-tools/hooks/fix_multiple
 	doas virsh net-start default
 	doas virsh net-autostart default
 	doas usermod -aG libvirt "$USER"
-	doas usermod -aG libvirt-qemu "$USER"
-	doas usermod -aG kvm "$USER"
-	doas usermod -aG input "$USER"
-	doas usermod -aG disk "$USER"
 	# Dnsmasq must be disabled because it starts on boot and conflicts with libvirt's initialization of dnsmasq
 	doas systemctl disable --now dnsmasq
 	# Disable services that are not needed at all times
-	doas systemctl disable --now libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket rpcbind.socket
-	doas systemctl disable --now libvirtd libvirt-guests virtlogd rpcbind polkit rtkit-daemon
+	doas systemctl disable --now libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket rpcbind.socket &&
+		doas systemctl disable --now libvirtd virtlogd rpcbind polkit
 }
 
 # Enable autologin for ttys 1-6
 for ltty in $(seq 1 6); do
-	doas "mkdir -p /etc/systemd/system/getty@tty$ltty.service.d/"
-	doas "tee /etc/systemd/system/getty@tty$ltty.service.d/override.conf" >/dev/null <<EOF
+	doas mkdir -p "/etc/systemd/system/getty@tty$ltty.service.d/"
+	doas tee "/etc/systemd/system/getty@tty$ltty.service.d/override.conf" >/dev/null <<EOF
 [Service]
 ExecStart=
 ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM

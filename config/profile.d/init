@@ -1,14 +1,14 @@
 #!/bin/env sh
 
 startvirt() {
-	doas systemctl start libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket rpcbind.socket &&
-		doas systemctl start libvirtd libvirt-guests virtlogd tuned rpcbind polkit rtkit-daemon
+	doas systemctl start libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket rpcbind.socket &&
+		doas systemctl start libvirtd virtlogd rpcbind polkit
 }
 
 stopvirt() {
-	doas systemctl stop libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket rpcbind.socket &&
-		doas systemctl stop libvirtd libvirt-guests virtlogd tuned rpcbind polkit rtkit-daemon &&
-		doas pkill dnsmasq 
+	doas systemctl stop libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket rpcbind.socket &&
+		doas systemctl stop libvirtd virtlogd rpcbind polkit &&
+		doas pkill dnsmasq
 }
 
 startdocker() {

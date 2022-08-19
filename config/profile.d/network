@@ -17,8 +17,6 @@ update() {
 	pipx upgrade-all &
 	# Update neovim configuration
 	(cd $HOME/.config/nvim && git pull) &
-	# Update the system time
-	doas ntpdate -s a.ntp.br || doas ntpdate -s b.ntp.br || doas ntpdate -s c.ntp.br
 	# Update the system
 	doas apt update && doas apt upgrade -y
 	# Update the command-not-found database
