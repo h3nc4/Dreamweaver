@@ -1,0 +1,10 @@
+. "$HOME/.config/env"
+{
+	sleep 300
+	while xwallpaper --zoom "$(find "$HOME/media/pics" -type f | shuf -n 1)"; do sleep 300; done
+} &
+while xsetroot -name " $(date) $USER@$(hostname) "; do sleep 1; done &
+. .config/monitors
+xwallpaper --zoom "$(find "$HOME/media/pics" -type f | shuf -n 1)"
+compton &
+exec dwm

@@ -1,0 +1,21 @@
+#!/bin/env bash
+
+# Backs up xinit
+cp "$HOME/.xinitrc" ./config/xinitrc
+
+# git
+cp "$XDG_CONFIG_HOME/git/config" ./config/gitconfig
+
+# mpv
+cp "$HOME/.config/mpv/mpv.conf" ./config/
+
+# ssh and gpg keys
+## check if the keys have already been backed up on the tarball
+[ -f ./keys/ssh_gpg.tgz ] && {
+	echo "Keys have already been backed up."
+	read -p "Do you want to overwrite the keys? [y/N] " && [[ $REPLY == [yY] ]] || exit 0
+}
+
+## ssh and gpg keys in an encrypted tarball
+tar -czf - -C "$HOME" .ssh -C "$HOME" .gnupg | openssl enc -aes-256-cbc -pbkdf2 -salt | tee ./keys/ssh_gpg.tgz >/dev/null
+openssl enc -d -aes-256-cbc -pbkdf2 -in ./keys/ssh_gpg.tgz | tar -fz # test the decryption

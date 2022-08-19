@@ -1,0 +1,33 @@
+Dreamweaver
+
+Dreamweaver is a script to install and configure a fresh Debian installation with my daily use desktop.
+
+Usage
+
+1. Clone the repo:
+
+	git clone https://github.com/h3nc4/Dreamweaver.git
+
+2. Run the script:
+
+	Dreamweaver/run
+
+Main Contents
+
+- run: The main script to run. Includes all steps to install and configure your system.
+- config/packages.csv: CSV file with the list of packages to be installed.
+- config/bash/: My bash configuration files.
+- config/profile.d/: Directory with scripts to be sourced by the user profile.
+- utils/: Directory with useful scripts to install and configure some applications and tools.
+
+Usage Notes
+
+For optimal security, it is recommended to use this script on an encrypted system, as it includes enabling auto-login and passwordless privileges.
+
+License
+
+Debian Dreamweaver is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+Debian Dreamweaver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+See LICENSE for more information.

@@ -1,0 +1,35 @@
+d() {
+	dd status=progress bs=1M if="$1" of="$2" conv=fsync
+	sync
+}
+gcdate() { GIT_AUTHOR_DATE="$1" GIT_COMMITTER_DATE="$1" git commit -m"$2"; }
+gcfake() { GIT_AUTHOR_DATE="$1" GIT_COMMITTER_DATE="$1" git commit --no-gpg-sign -m"$2" --author="$3 <$4>"; }
+gcnosign() { git commit -no-gpg-sign -m"$1"; }
+gcnomsg() { git commit --allow-empty-message -m""; }
+md() { pandoc "$1" -t plain | less; }
+roffpdf() { preconv "$1" | eqn -Tpdf | tbl | groff -mms -Tpdf | zathura -; }
+cmp256() { diff <(sha256sum "$1") "$2"; }
+cmp512() { diff <(sha512sum "$1") "$2"; }
+cmp256f() { diff <(sha256sum "$1") <(sha256sum "$2"); }
+cmp512f() { diff <(sha512sum "$1") <(sha512sum "$2"); }
+killport() { doas fuser -k "$1"/tcp; }
+netsend() { nc "$1" "$2"; }
+netsendf() { nc "$1" "$2" <"$3"; }
+netlisten() { nc -lq0 -p "$1"; }
+netlistenf() { nc -lq0 -p "$1" >"$2"; }
+dockerstop() { docker stop $(docker ps -a -q); }
+dockerrm() { docker rm -f $(docker ps -a -q); }
+dockerpurge() {
+	dockerrm
+	echo y | docker system prune -a
+}
+dockerstart() { [ -z "$2" ] && docker run -d --name tmp "$1" sleep infinity || docker run -d --name "$2" "$1" sleep infinity; }
+finddir() { find "$2" -type d -name "$1" 2>/dev/null; }
+findfile() { find "$2" -type f -name "$1" 2>/dev/null; }
+rmwhite() { for file in *\ *; do mv "$file" "$(echo "$file" | tr ' ' '_')"; done; }
+cdlink() { cd "$(readlink -f "$1")" || echo "Failed to cd into the link destination."; }
+nvimclear() {
+	doas killall nvim >/dev/null 2>&1
+	rm -rf "$HOME/.local/state/nvim/*" "$HOME/.cache/nvim/*" && (cd "$HOME/.config/nvim/" && git clean -fdx)
+}
+chwallpaper() { [ -z "$1" ] && xwallpaper --zoom "$(find "$HOME/media/pics" -type f | shuf -n 1)" || xwallpaper --zoom "$1"; }

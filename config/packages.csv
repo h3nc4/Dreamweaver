@@ -1,0 +1,121 @@
+core,fonts-freefont-ttf,Fonts
+core,man-db,Manual pages
+core,manpages,Manual pages
+core,keyutils,Allows scripts for mounting encrypted partitions
+core,openssh-client,Network utilities
+core,telnet,Network utilities
+core,nmap,Network utilities
+core,net-tools,Network utilities
+core,ufw,Network utilities
+core,util-linux,System utilities
+core,sysstat,System utilities
+core,lsof,System utilities
+core,progress,System utilities
+core,pv,System utilities
+core,tmux,System utilities
+core,lm-sensors,System utilities
+core,xserver-xorg,Display server
+core,xinit,Display server
+core,compton,Display server
+core,xclip,Display server
+core,xwallpaper,Display server
+core,maim,Display server
+core,arandr,Display server
+core,brightnessctl,Display server
+core,lf,File manager
+core,ueberzug,File manager
+core,ffmpegthumbnailer,File manager
+core,pipewire-pulse,Audio
+core,wireplumber,Audio
+core,pulsemixer,Audio
+core,nsxiv,Image viewer
+core,mpv,Media player
+core,zathura,PDF reader
+core,gnome-themes-extra,adwaita
+core,firefox,Browser
+core,ffmpeg,Browser
+core,keepassxc,Password manager
+core,newsboat,RSS reader
+core,command-not-found,Command line QoL
+core,bash-completion,Command line QoL
+core,nano,Editors
+core,git,Editors
+core,ripgrep,Editors
+core,python3-pynvim,Editors
+core,zip,Compression
+core,unzip,Compression
+core,xz-utils,Compression
+core,pipx,Python package manager
+core,libfile-mimeinfo-perl,File type detection for xdg-open
+opt,signal-desktop,Private messaging
+opt,libreoffice-writer,Office suite
+opt,libreoffice-calc,Office suite
+opt,simplescreenrecorder,Screen recording
+opt,bluez,Bluetooth
+opt,rfkill,Bluetooth
+games,steam-installer,Steam
+games,mesa-vulkan-drivers,Steam
+games,libglx-mesa0:i386,Steam
+games,mesa-vulkan-drivers:i386,Steam
+games,libgl1-mesa-dri:i386,Steam
+games,wine,Wine
+games,wine32,Wine
+games,wine64,Wine
+games,winetricks,Wine
+dev,code,Proprietary code editor
+dev,groff,Documentation
+dev,pandoc,Documentation
+dev,rsync,File synchronization
+dev,libxft-dev,wm compilation
+dev,libxinerama-dev,wm compilation
+dev,libxkbfile-dev,wm compilation
+dev,libharfbuzz-dev,terminal compilation
+dev,libfribidi-dev,terminal compilation
+dev,docker-ce,Docker
+dev,docker-ce-cli,Docker
+dev,containerd.io,Docker
+dev,docker-buildx-plugin,Docker
+dev,docker-compose-plugin,Docker
+dev,sqlite3,Databases
+dev,sqlitebrowser,Databases
+dev,software-properties-common,Essential tools
+dev,build-essential,Essential tools
+dev,gdb,Compilation
+dev,cmake,Compilation
+dev,clang,Compilation
+dev,ninja-build,Compilation
+dev,fakeroot,Compilation
+dev,pkg-config,Compilation
+dev,libgtk-3-dev,Compilation
+dev,python3-dev,Python development
+dev,python3-pip,Python development
+dev,python-is-python3,Python development
+dev,python3-venv,Python development
+dev,graphviz,Python development
+dev,nodejs,Node.js
+dev,npm,Node.js
+dev,openjdk-17-jdk,Java
+dev,openjdk-17-doc,Java
+dev,openjdk-17-source,Java
+dev,libmpv-dev,Video development
+dev,perl,Perl
+dev,chromium,Core browser
+dev,shellcheck,Check if shell scripts follow standards
+virt,virt-manager,Frontend
+virt,virt-viewer,Frontend
+virt,virtinst,Frontend
+virt,qemu-kvm,QEMU
+virt,qemu-system,QEMU
+virt,qemu-system-x86,QEMU
+virt,qemu-utils,QEMU
+virt,ovmf,UEFI for virtualization
+virt,swtpm,TPM for virtualization
+virt,dnsmasq,Networking for virtualization
+virt,vde2,Networking for virtualization
+virt,bridge-utils,Networking for virtualization
+virt,netcat-openbsd,Networking for virtualization
+virt,libvirt-clients,Libvirt
+virt,libvirt-daemon-system,Libvirt
+virt,guestfs-tools,Libguestfs
+virt,libosinfo-bin,Libosinfo
+virt,gir1.2-spiceclientgtk-3.0,Spice

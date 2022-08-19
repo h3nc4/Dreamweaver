@@ -1,0 +1,17 @@
+#!/bin/env sh
+
+ctar() { # tar -czf
+	tar -czf - "$2" | pv -s "$(du -sb "$2" | awk '{print $1}')" >"$1"
+}
+
+ctarh() { # tar --exclude=".*" -czf
+	tar --exclude=".*" -czf - "$2" | pv -s "$(du -sb --exclude=".*" "$2" | awk '{print $1}')" >"$1"
+}
+
+untar() { # tar -xzf
+	pv "$1" | tar -xzf - -C "$2"
+}
+
+tarlist() { # tar -tf
+	tar -tf "$1"
+}
