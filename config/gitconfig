@@ -1,0 +1,15 @@
+[user]
+	name = h3nc4
+	email = me@h3nc4.com
+	signingkey = DAB56B7AEEB41D1AA11412EDA84ACF0E22C82821
+[init]
+	defaultBranch = main
+[commit]
+	gpgsign = true
+[tag]
+	gpgSign = true
+[push]
+	default = current
+	defaultCurrent = simple
+[pull]
+	ff = only

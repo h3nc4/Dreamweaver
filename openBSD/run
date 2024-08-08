@@ -1,0 +1,61 @@
+# Run this as a your user
+echo 'https://openbsd.c3sl.ufpr.br/pub/OpenBSD' | doas tee /etc/installurl # Set mirror
+echo 'gem.h3nc4.com' | doas tee /etc/myname # Set hostname
+echo 'hw.smt=1' | doas tee -a /etc/sysctl.conf # Enable Hyper-Threading
+doas syspatch # Apply patches
+doas pkg_add -u # Update packages
+# Install packages and utilities
+doas pkg_add xfce xfce4-screenshooter xfce4-pulseaudio xfce4-power-manager xfce4-mount xfce4-genmon xfce4-battery thunar dbus avahi \
+    git wget curl \
+    python3 py3-pip py3-pipx \
+    node \
+    firefox ungoogled-chromium \
+    libreoffice \
+    mpv \
+    bash \
+    nano neovim \
+    htop screenfetch \
+    xclip \
+    zathura \
+    nsxiv \
+    newsboat \
+    nmap \
+    ffmpeg \
+    pv \
+    keepassxc
+
+pipx install yt-dlp # yt-dlp's latest version
+chsh -s bash # Change shell to bash
+
+# Enable services
+doas sed -i 's/xconsole/#xconsole/' /etc/X11/xenodm/Xsetup_0
+doas rcctl enable messagebus
+doas rcctl enable avahi_daemon
+doas rcctl enable xenodm
+
+# Autologin and start Xfce4
+echo "DisplayManager*autoLogin:       h3nc4" | doas tee -a /etc/X11/xenodm/xenodm-config
+echo "exec startxfce4" >$HOME/.xsession
+echo "exec startxfce4" | doas tee /root/.xinitrc
+
+# Xfce4 config
+mkdir -p $HOME/.config/xfce4/terminal
+mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml
+cp ./config/xfce/*.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/
+cp ./config/xfce/terminalrc $HOME/.config/xfce4/terminal/
+
+# Couple dotfiles
+cp ./config/bashrc $HOME/.bashrc
+cp ./config/gitconfig $HOME/.gitconfig
+
+# Background
+mkdir -p $HOME/pics
+cp ./pics/landscape.jpg $HOME/pics/
+
+# Config mpv
+mkdir -p $HOME/.config/mpv
+tee $HOME/.config/mpv/mpv.conf >/dev/null <<EOF
+loop-file=inf
+loop-playlist=inf
+fs=yes
+EOF

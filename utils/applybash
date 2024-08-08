@@ -1,0 +1,19 @@
+#!/bin/sh
+
+sudo rm /etc/bash.bash.bashrc "$HOME"/.bashrc "$HOME"/.bash_profile "$HOME"/.bash_login "$HOME"/.bash_logout "$HOME"/.profile >/dev/null 2>&1
+mkdir -p "$HOME"/.local/profile.d "$HOME"/.config/bash
+cp ./config/env "$XDG_CONFIG_HOME/env"
+cp ./config/bashrc "$XDG_CONFIG_HOME/bash/bashrc"
+cp ./config/profile.d/* "$HOME"/.local/profile.d/
+chmod +x "$HOME"/.local/profile.d/*
+sudo tee /etc/profile >/dev/null <<EOF
+export PATH="\$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+[ -d /etc/profile.d ] && for i in /etc/profile.d/*.sh; do [ -r "\$i" ] && . "\$i"; done; unset i
+[ "\$BASH" ] && { 
+    function command_not_found_handle (){ echo "bash: \$1: command not found"; return 127; }
+    . "\$HOME/.config/bash/bashrc"
+}
+EOF
+sudo tee /etc/bash.bash_logout >/dev/null <<EOF
+[ "\$SHLVL" = 1 ] && [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+EOF

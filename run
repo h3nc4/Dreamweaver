@@ -1,0 +1,343 @@
+#! /usr/bin/env bash
+
+# This script must be run by your user on a fresh debian net-install
+# Select no packages during the installation process
+# Make sure you run this in the same directory as "./run"
+
+# Test internet connection
+ping -c 1 gnu.org >/dev/null 2>&1 || {
+	echo "No internet connection"
+	exit 1
+}
+
+SIGNAL=''
+OFFICE=''
+BLUETOOTH=''
+DEVPACKS=''
+
+# Ask for optional packages
+echo "Install Signal? [y/N] "
+read SIGNAL
+echo "Install Libreoffice? [y/N] "
+read OFFICE
+echo "Install Bluetooth? [y/N] "
+read BLUETOOTH
+echo "Install Development packages? [y/N] "
+read DEVPACKS
+
+# Check sudo privileges
+sudo -v || {
+	echo "This script requires sudo privileges."
+	exit 1
+}
+
+# Check if the script is not being run as root
+[ "$(id -u)" -eq 0 ] && {
+	echo "Please run this script as your regular user."
+	exit 1
+}
+
+# Check if the script is being run in the correct directory
+[ ! -f ./run ] && {
+	echo "Please run this script in the same directory as 'run'"
+	exit 1
+}
+
+# Move any previous logs to a backup file with a timestamp
+[ ! -s ./logs/install.log ] && rm ./logs/install.log >/dev/null 2>&1
+[ -f ./logs/install.log ] && mv ./logs/install.log "./logs/install.log.$(date +%s%3N)"
+
+# Redirect stdout and stderr to ./logs/install.log
+exec > >(tee -a ./logs/install.log)
+exec 2>&1
+
+# Config sudo
+sudo tee /etc/sudoers >/dev/null <<EOF
+Defaults	!admin_flag
+Defaults	env_reset
+Defaults	use_pty
+Defaults	secure_path='/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+root	ALL=(ALL:ALL) ALL
+$USER	ALL=(ALL:ALL) NOPASSWD:ALL
+EOF
+
+# Create the user directories
+[ ! -d /home/"$USER"/.local/bin ] && mkdir -p /home/"$USER"/.local/bin
+[ ! -d /home/"$USER"/.local/cache ] && mkdir -p /home/"$USER"/.local/cache
+[ ! -d /home/"$USER"/.local/config ] && mkdir -p /home/"$USER"/.local/config
+[ ! -d /home/"$USER"/.local/share ] && mkdir -p /home/"$USER"/.local/share
+
+# Change debian to testing
+sudo sed -i 's/bookworm/testing/g' /etc/apt/sources.list
+
+# Add unstable to the sources
+echo 'deb http://deb.debian.org/debian unstable main' | sudo tee -a /etc/apt/sources.list >/dev/null
+
+# Lower the priority of unstable packages
+sudo tee /etc/apt/preferences.d/unstable.pref >/dev/null <<EOF
+Package: *
+Pin: release a=testing
+Pin-Priority: 990
+
+Package: *
+Pin: release a=unstable
+Pin-Priority: 10
+EOF
+
+# Fully update the system
+sudo apt-get update
+sudo apt-get dist-upgrade -y
+
+# Install network and signing packages.
+# log the installation
+sudo apt-get install --no-install-recommends -y efibootmgr grub-efi-amd64-unsigned mokutil shim-signed-common grub-efi-amd64-bin libc6-i386 shim-helpers-amd64-signed shim-unsigned linux-image-amd64 grub coreutils dash bash curl apt-transport-https ca-certificates gnupg lsb-release ntpdate || {
+	echo "Failed to install core packages."
+	exit 1
+}
+
+# Set the time
+sudo ntpdate -s a.ntp.br || sudo ntpdate -s b.ntp.br || sudo ntpdate -s c.ntp.br
+
+# Install optional packages
+[ "$SIGNAL" = "y" ] || [ "$SIGNAL" = "Y" ] && {
+	# Signal apt setup
+	curl -s https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor >signal-desktop-keyring.gpg &&
+		cat signal-desktop-keyring.gpg | sudo tee /usr/share/keyrings/signal-desktop-keyring.gpg >/dev/null &&
+		echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/signal-desktop-keyring.gpg] https://updates.signal.org/desktop/apt xenial main' |
+		sudo tee /etc/apt/sources.list.d/signal-xenial.list >/dev/null &&
+		sudo rm -f signal-desktop-keyring.gpg
+}
+
+[ "$DEVPACKS" = "y" ] || [ "$DEVPACKS" = "Y" ] && {
+	# Vscode setup
+	curl -s https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor >microsoft.gpg &&
+		sudo install -o root -g root -m 644 microsoft.gpg /etc/apt/keyrings/microsoft-archive-keyring.gpg &&
+		sudo sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/microsoft-archive-keyring.gpg] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list' &&
+		sudo rm -f packages.microsoft.gpg
+	# Docker apt setup
+	sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
+		sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+		echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian bookworm stable" |
+		sudo tee /etc/apt/sources.list.d/docker.list >/dev/null
+	# pgadmin4 apt setup
+	curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | sudo gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg &&
+		sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/bookworm pgadmin4 main" > /etc/apt/sources.list.d/pgadmin4.list'
+}
+
+# Thorium apt setup
+sudo curl -so /etc/apt/sources.list.d/thorium.list http://dl.thorium.rocks/debian/dists/stable/thorium.list >/dev/null
+
+# Setup Nerdfonts
+mkdir -p "$HOME/.local/share/fonts"
+curl -L --silent "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz" |
+    tar -xJ -C "$HOME/.local/share/fonts" >/dev/null 2>&1 &&
+    fc-cache -fv >/dev/null 2>&1 &&
+    echo "Hack Nerd Font has been installed"
+
+sudo apt-get update >/dev/null
+echo "Installing packages. This may take a while."
+
+# Basic package list
+packages=(
+	openssh-client telnet nmap # Network tools
+	mingetty # Minimal getty implementation that allows autologin
+	fonts-freefont-ttf # Fonts
+	tealdeer man-db manpages # Manual pages
+	keyutils # Allows scripts for mounting encrypted partitions
+	gnome-keyring # Keyring
+	util-linux rsyslog sysstat net-tools lsof openssh-client progress pv tmux ufw # System utilities
+	xorg xinit # Display server
+	network-manager # Network
+	thunar thunar-volman tumbler tumbler-plugins-extra ffmpeg ffmpegthumbnailer gvfs libblockdev-crypto3 # File manager
+	pulseaudio pavucontrol pulsemixer #Audio
+	nsxiv # Image viewer
+	mpv # Media player
+	zathura # PDF reader
+	xfce4 xfce4-terminal xfce4-power-manager xfce4-battery-plugin xfce4-screenshooter xfce4-sensors-plugin xfce4-timer-plugin xfce4-whiskermenu-plugin xfce4-notifyd xfce4-pulseaudio-plugin gnome-themes-extra xfce4-genmon-plugin xclip # Xfce4
+	firefox-esr thorium-browser # Browsers
+	keepassxc # Password manager
+	newsboat # RSS reader
+	command-not-found bash-completion # Command line QoL
+	mousepad nano neovim # Editors
+	pipx # pipx is used to install yt-dlp and other python packages locally
+)
+[ "$SIGNAL" = "y" ] || [ "$SIGNAL" = "Y" ] && packages+=(signal-desktop)                      # Encrypted messaging
+[ "$OFFICE" = "y" ] || [ "$OFFICE" = "Y" ] && packages+=(libreoffice-writer libreoffice-math) # Office suite
+[ "$BLUETOOTH" = "y" ] || [ "$BLUETOOTH" = "Y" ] && packages+=(bluez blueman)                 # Bluetooth support
+[ "$DEVPACKS" = "y" ] || [ "$DEVPACKS" = "Y" ] && packages+=( # Development packages
+	code # Proprietary code editor
+	groff pandoc # Documentation
+	rsync # File synchronization
+	docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin # Docker
+	postgresql pgadmin4-desktop sqlite3 sqlitebrowser # Databases
+	gcc make libxft-dev libx11-dev libxinerama-dev libxcb1-dev libxkbfile-dev # Compile and run X11 window managers
+	git zip unzip automake autoconf cmake clang ninja-build gettext ripgrep fakeroot build-essential g++ gdb pkg-config libgtk-3-dev software-properties-common libsecret-1-dev libkrb5-dev libtool libtool-bin tesseract-ocr xz-utils # Compilation, debugging and other tools
+	python3 python3-dev python3-pip python-is-python3 python3-venv # Python development
+	nodejs npm # Node.js
+	openjdk-17-jdk openjdk-17-doc openjdk-17-source # Java
+	libmpv-dev # Video development
+	perl # Perl
+	chromium # Core browser base for most browsers
+	shellcheck # Check if shell scripts follow standards
+)
+
+# install the packages
+sudo apt-get install --no-install-recommends -y "${packages[@]}" || {
+	echo "Package installation failed. Check logs/install.log for details."
+	exit 1
+}
+
+# Firewall rules
+sudo ufw limit ssh
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+echo y | sudo ufw enable
+
+# Config grub
+sudo tee /etc/default/grub >/dev/null <<EOF
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=0
+GRUB_DISTRIBUTOR=Debian
+GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+GRUB_CMDLINE_LINUX=""
+GRUB_DISABLE_OS_PROBER=true
+GRUB_BACKGROUND=/boot/grub/end.jpg
+EOF
+sudo cp ./pics/end.jpg /boot/grub/
+sudo update-grub
+
+# Config Xorg
+mkdir -p "$HOME/.config" "$HOME/.cache" "$HOME/.local/bin" "$$HOME/.local/state/bash" >/dev/null 2>&1
+tee "$HOME"/.xinitrc >/dev/null <<EOF
+[ -f "\$HOME"/.config/env ] && . "\$HOME"/.config/env
+exec startxfce4
+EOF
+
+# Enable touchpad tapping
+sudo mkdir -p /etc/X11/xorg.conf.d
+sudo tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<EOF
+Section "InputClass"
+Identifier "libinput touchpad catchall"
+MatchIsTouchpad "on"
+MatchDevicePath "/dev/input/event*"
+Driver "libinput"
+Option "Tapping" "on"
+EndSection
+EOF
+
+# Config polkit
+sudo tee /etc/polkit-1/rules.d/10-nopasswd.rules >/dev/null <<EOF
+polkit.addRule(function(action, subject) {
+	if (subject.user == "$USER") {
+		return polkit.Result.YES;
+	}
+});
+EOF
+
+# Config bash
+sudo rm /etc/bash.bash.bashrc "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.bash_login" "$HOME/.bash_logout" "$HOME/.profile" >/dev/null 2>&1
+mkdir -p "$HOME"/.local/profile.d "$HOME"/.config/bash
+cp ./config/env "$XDG_CONFIG_HOME/env"
+cp ./config/bashrc "$XDG_CONFIG_HOME/bash/bashrc"
+cp ./config/profile.d/* "$HOME"/.local/profile.d/
+chmod +x "$HOME/.local/profile.d/*"
+sudo tee /etc/profile >/dev/null <<EOF
+export PATH="\$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+[ -d /etc/profile.d ] && for i in /etc/profile.d/*.sh; do [ -r "\$i" ] && . "\$i"; done; unset i
+[ "\$BASH" ] && { 
+    function command_not_found_handle (){ echo "bash: \$1: command not found"; return 127; }
+    . "\$HOME/.config/bash/bashrc"
+}
+EOF
+sudo tee /etc/bash.bash_logout >/dev/null <<EOF
+[ "\$SHLVL" = 1 ] && [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q
+EOF
+
+# Config xfce
+mkdir -p "$HOME/.config/xfce4/terminal"
+mkdir -p "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml"
+cp ./config/xfce/*.xml "$HOME/.config/xfce4/xfconf/xfce-perchannel-xml/"
+cp ./config/xfce/terminalrc "$HOME/.config/xfce4/terminal/"
+
+# Config backgrounds
+sudo cp ./pics/end.jpg /usr/share/backgrounds/slickback
+mkdir -p "$HOME/pics"
+cp ./pics/landscape.jpg "$HOME/pics/"
+
+pipx install yt-dlp # Install yt-dlp
+
+# Create newsboar dirs
+mkdir -p "$XDG_DATA_HOME/newsboat" "$XDG_CONFIG_HOME/newsboat"
+
+# Config mpv
+mkdir -p "$HOME/.config/mpv"
+ln -s "$HOME/.local/bin/yt-dlp" "$HOME/.config/mpv/yt-dlp"
+cp ./config/mpv.conf "$HOME/.config/mpv/"
+
+# Config nsxiv to open all images in a the current dir
+sudo sed -i 's|Exec=nsxiv %F|Exec=bash -c '\''nsxiv -af "%f" $(dirname "%f")'\''|' /usr/share/applications/nsxiv.desktop
+
+# suggestions
+sudo apt-get update >/dev/null
+sudo update-command-not-found
+
+sudo chown -R "$USER:$USER" /media # Give user permission to removable media
+
+# Remove beeping noise in tty and others
+sudo sed -i 's/# set bell-style none/set bell-style none/g' /etc/inputrc
+echo "blacklist pcspkr" | sudo tee /etc/modprobe.d/blacklist.conf >/dev/null
+
+# Decrypt multiple partitions with the same key
+grep -q ",initramfs,keyscript=decrypt_keyctl" /etc/crypttab >/dev/null 2>&1 ||
+	sudo sed -i 's/$/,initramfs,keyscript=decrypt_keyctl/g' /etc/crypttab &&
+	sudo update-initramfs -u
+
+# Remove useless folders
+rmdir "$HOME/Documents" "$HOME/Music" "$HOME/Pictures" "$HOME/Public" "$HOME/Templates" "$HOME/Videos" >/dev/null 2>&1
+
+mkdir "$XDG_CONFIG_HOME/git"
+cp ./config/gitconfig "$XDG_CONFIG_HOME/git/config"
+
+# Remove login messages
+sudo rm -f /etc/motd /etc/issue /etc/issue.net >/dev/null 2>&1
+
+[ "$DEVPACKS" = "y" ] || [ "$DEVPACKS" = "Y" ] && {
+	# Docker
+	sudo groupadd docker
+	sudo usermod -aG docker "$USER"
+	# Setup initial postgres user and database for development
+	sudo -u postgres psql -c "CREATE USER developer WITH SUPERUSER PASSWORD 'developer';"
+	sudo -u postgres createdb developer
+	sudo -u postgres psql -c "grant all privileges on database developer to developer;"
+	# Disable services that are not needed at all times
+	sudo systemctl disable --now docker.socket
+	sudo systemctl disable --now \
+		docker containerd \
+		postgresql
+}
+
+[ "$BLUETOOTH" = "y" ] || [ "$BLUETOOTH" = "Y" ] &&
+	sudo systemctl disable --now bluetooth # Disable bluetooth service
+
+# Fix multiple encrypted partitions not being unencrypted at boot
+sudo tee /etc/initramfs-tools/hooks/fix_multiple >/dev/null <<EOF
+#!/bin/sh
+cp /etc/crypttab \${DESTDIR}/cryptroot/crypttab
+exit 0
+EOF
+sudo chmod +x /etc/initramfs-tools/hooks/fix_multiple
+
+# Enable autologin for ttys 1-6
+for tty in $(seq 1 6); do
+	sudo mkdir -p /etc/systemd/system/getty@tty"$tty".service.d/
+	sudo bash -c "echo '[Service]
+ExecStart=
+ExecStart=-/sbin/mingetty --autologin $USER --noclear tty$tty' > /etc/systemd/system/getty@tty$tty.service.d/override.conf"
+done
+sudo systemctl daemon-reload
+for tty in $(seq 1 6); do
+	sudo systemctl enable getty@tty"$tty"
+	sudo systemctl restart getty@tty"$tty"
+done
+
+exit 0 # End of script

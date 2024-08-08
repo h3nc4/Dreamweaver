@@ -1,0 +1,34 @@
+#! /usr/bin/env bash
+
+sudo apt-get update
+sudo apt-get install -y libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
+
+# Path to the Android Studio .tar.gz file
+ANDROID_STUDIO_FILE=~/hd/android-studio-*-linux.tar.gz
+
+# Destination directory for installation
+INSTALL_DIR=/opt/
+
+# Check if the file exists
+[ ! -f $ANDROID_STUDIO_FILE ] && echo "Android Studio installation file not found at $ANDROID_STUDIO_FILE"
+
+# Check if the installation directory exists
+[ ! -d $INSTALL_DIR ] && sudo mkdir $INSTALL_DIR 
+
+# Extract the Android Studio archive to the installation directory
+sudo tar -xzf $ANDROID_STUDIO_FILE -C $INSTALL_DIR
+
+# Set permissions
+sudo chown -R $(whoami):$(whoami) $INSTALL_DIR/android-studio
+
+# Create a symbolic link to the Android Studio executable
+sudo ln -s $INSTALL_DIR/android-studio/bin/studio.sh /usr/local/bin/android-studio
+
+# Links for flutter and dart
+sudo ln -s $INSTALL_DIR/flutter/bin/flutter /usr/local/bin/flutter
+sudo ln -s $INSTALL_DIR/flutter/bin/dart /usr/local/bin/dart
+
+# Accept the Android SDK licenses
+yes | flutter doctor --android-licenses
+
+android-studio

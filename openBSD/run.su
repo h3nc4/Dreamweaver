@@ -1,0 +1,5 @@
+# Run this as root
+usermod -G operator h3nc4
+usermod -G wheel h3nc4
+usermod -G staff h3nc4
+echo "permit persist keepenv nopass h3nc4" > /etc/doas.conf

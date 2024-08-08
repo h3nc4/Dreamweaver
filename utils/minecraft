@@ -1,0 +1,60 @@
+#! /usr/bin/env bash
+
+# No password for ssh
+sudo sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+sudo sed -i 's/^#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+
+# Restart ssh
+sudo systemctl restart ssh
+
+# Update and upgrade
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get purge nano
+sudo apt-get install ufw software-properties-common curl htop -y
+
+# Firewall
+sudo ufw limit ssh
+sudo ufw allow 25565
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+echo y | sudo ufw enable
+
+# Install Java
+curl -OJL https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb
+sudo chown 777 jdk-22_linux-x64_bin.deb
+sudo apt-get install ./jdk-22_linux-x64_bin.deb
+rm jdk-22_linux-x64_bin.deb
+
+# Minecraft server (copy with scp)
+sudo mkdir -p /opt/minecraft
+sudo chown -R $USER:$USER /opt/minecraft
+mv server.jar /opt/minecraft
+cd /opt/minecraft
+echo "eula=true" >eula.txt
+echo "exec /usr/bin/java -Xms2G -Xmx6G -jar server.jar --nogui" >run
+chmod +x run
+
+# Create systemd service file
+cat <<EOF | sudo tee /etc/systemd/system/minecraft.service >/dev/null
+[Unit]
+Description=Minecraft Server
+After=network.target
+
+[Service]
+User=$USER
+Group=$USER
+Type=simple
+WorkingDirectory=/opt/minecraft
+ExecStart=/usr/bin/java -Xms2G -Xmx6G -jar /opt/minecraft/server.jar --nogui
+Restart=on-failure
+StandardOutput=append:/var/log/minecraft.log
+StandardError=append:/var/log/minecraft_error.log
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Start and enable the service
+sudo systemctl daemon-reload
+sudo systemctl enable --now minecraft

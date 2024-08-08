@@ -1,0 +1,23 @@
+#!/bin/sh
+
+startvirt() {
+  sudo systemctl start libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket &&
+    sudo systemctl start libvirtd libvirt-guests
+}
+
+startdocker() {
+  sudo systemctl start docker.socket &&
+    sudo systemctl start docker containerd
+}
+
+startpg() {
+  sudo systemctl start postgresql
+}
+
+startbt() {
+  sudo systemctl start bluetooth
+}
+
+startssh() {
+  sudo systemctl start ssh
+}

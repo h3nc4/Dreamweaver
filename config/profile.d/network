@@ -1,0 +1,23 @@
+#!/bin/sh
+
+port() {
+  sudo lsof -i :"$1"
+}
+
+nettest() {
+  echo "pinging h3nc4.com..."
+  ping -c 3 h3nc4.com
+}
+
+update() {
+  pipx upgrade-all &
+  tldr --update &
+  sudo ntpdate -s a.ntp.br || sudo ntpdate -s b.ntp.br || sudo ntpdate -s c.ntp.br
+  sudo apt update && sudo apt upgrade
+}
+
+myip() {
+  echo "Private IPv4: $(hostname -I | awk '{print $1}')"
+  echo "IPv6: $(ip -6 addr show | grep -oP '(?<=inet6\s)[\da-f:]+(?=/64)' | head -n 1)"
+  echo "Public IPv4: $(curl -s4 https://ifconfig.me)"
+}

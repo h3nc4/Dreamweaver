@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<channel name="xfce4-panel" version="1.0">
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <value type="int" value="1"/>
+    <property name="dark-mode" type="bool" value="true"/>
+    <property name="panel-1" type="empty">
+      <property name="position" type="string" value="p=6;x=0;y=0"/>
+      <property name="length" type="double" value="100"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="icon-size" type="uint" value="16"/>
+      <property name="size" type="uint" value="26"/>
+      <property name="plugin-ids" type="array">
+        <value type="int" value="3"/>
+        <value type="int" value="4"/>
+        <value type="int" value="5"/>
+        <value type="int" value="6"/>
+        <value type="int" value="1"/>
+        <value type="int" value="10"/>
+        <value type="int" value="8"/>
+        <value type="int" value="15"/>
+        <value type="int" value="14"/>
+        <value type="int" value="11"/>
+        <value type="int" value="2"/>
+      </property>
+      <property name="autohide-behavior" type="uint" value="1"/>
+      <property name="mode" type="uint" value="0"/>
+      <property name="span-monitors" type="bool" value="false"/>
+      <property name="output-name" type="string" value="Primary"/>
+      <property name="background-style" type="uint" value="1"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0"/>
+        <value type="double" value="0"/>
+        <value type="double" value="0"/>
+        <value type="double" value="0.59459459459459463"/>
+      </property>
+    </property>
+  </property>
+  <property name="plugins" type="empty">
+    <property name="plugin-4" type="string" value="pager">
+      <property name="rows" type="uint" value="1"/>
+      <property name="miniature-view" type="bool" value="false"/>
+      <property name="wrap-workspaces" type="bool" value="false"/>
+      <property name="workspace-scrolling" type="bool" value="true"/>
+    </property>
+    <property name="plugin-5" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="true"/>
+    </property>
+    <property name="plugin-6" type="string" value="systray">
+      <property name="square-icons" type="bool" value="true"/>
+      <property name="known-legacy-items" type="array">
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (52%)"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (45%)"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (55%)"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (50%)"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (46%)"/>
+        <value type="string" value="xfce4-power-manager"/>
+        <value type="string" value="no network connection"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (39%)"/>
+        <value type="string" value="wi-fi network connection “net_5g” active: net_5g (51%)"/>
+        <value type="string" value="networkmanager applet"/>
+      </property>
+      <property name="known-items" type="array">
+        <value type="string" value="SimpleScreenRecorder"/>
+        <value type="string" value="virt-manager"/>
+        <value type="string" value="AutoKey"/>
+        <value type="string" value="qBittorrent"/>
+        <value type="string" value="blueman"/>
+      </property>
+      <property name="hidden-items" type="array">
+      </property>
+      <property name="hidden-legacy-items" type="array">
+      </property>
+      <property name="icon-size" type="int" value="22"/>
+    </property>
+    <property name="plugin-10" type="string" value="notification-plugin"/>
+    <property name="plugin-11" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+    </property>
+    <property name="plugin-1" type="string" value="pulseaudio">
+      <property name="enable-keyboard-shortcuts" type="bool" value="true"/>
+      <property name="mpris-players" type="string" value="brave.instance104630;brave.instance758805;chromium.instance10039;chromium.instance10163;chromium.instance104529;chromium.instance14471;chromium.instance15422;chromium.instance16320;chromium.instance1706;chromium.instance1730;chromium.instance1747;chromium.instance1813;chromium.instance1891;chromium.instance1897;chromium.instance1982;chromium.instance1988;chromium.instance1999;chromium.instance2045;chromium.instance2070;chromium.instance2086;chromium.instance2098;chromium.instance2101;chromium.instance2110;chromium.instance2127;chromium.instance2158;chromium.instance2159;chromium.instance22047;chromium.instance2289;chromium.instance2298;chromium.instance23355;chromium.instance2351;chromium.instance2354;chromium.instance2375;chromium.instance2399;chromium.instance2402;chromium.instance2465;chromium.instance2506;chromium.instance2538;chromium.instance2551;chromium.instance2574;chromium.instance2580;chromium.instance2583;chromium.instance2661;chromium.instance26719;chromium.instance2794;chromium.instance2850;chromium.instance2945;chromium.instance31168;chromium.instance3165;chromium.instance3190;chromium.instance3386;chromium.instance35670;chromium.instance3920;chromium.instance40498;chromium.instance4068;chromium.instance4181;chromium.instance4712;chromium.instance5080;chromium.instance51120;chromium.instance5412;chromium.instance5426;chromium.instance58551;chromium.instance59432;chromium.instance6123;chromium.instance68586;chromium.instance8334;chromium.instance9033;chromium.instance9474;firefox.instance11371;firefox.instance119488;firefox.instance15488;firefox.instance16492;firefox.instance16892;firefox.instance19815;firefox.instance2072;firefox.instance21607;firefox.instance21643;firefox.instance2167;firefox.instance2311;firefox.instance2348;firefox.instance3113;firefox.instance35151;firefox.instance3729;firefox.instance4399;firefox.instance5175;firefox.instance6096;firefox.instance8452;firefox.instance9194;firefox.instance9394;vlc"/>
+      <property name="known-players" type="string" value="cmus;Thorium"/>
+    </property>
+    <property name="plugin-3" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+    <property name="plugin-8" type="string" value="xfce4-sensors-plugin"/>
+    <property name="plugin-2" type="string" value="genmon"/>
+    <property name="plugin-14" type="string" value="battery"/>
+    <property name="plugin-15" type="string" value="separator">
+      <property name="style" type="uint" value="0"/>
+      <property name="expand" type="bool" value="false"/>
+    </property>
+  </property>
+</channel>

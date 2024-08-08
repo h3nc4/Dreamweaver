@@ -1,0 +1,174 @@
+#! /usr/bin/env bash
+
+# Set PATH
+export PATH="$HOME/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# Load system profile
+[ -d /etc/profile.d ] && for i in /etc/profile.d/*.sh; do [ -r "$i" ] && . "$i"; done
+unset i
+
+# Load user profile
+[ -d "$HOME"/.local/profile.d ] && for i in "$HOME"/.local/profile.d/*; do [ -r "$i" ] && . "$i"; done
+unset i
+
+export LOADED_BASHRC=1
+
+case $- in # Check for an interactive session
+*i*) ;;
+*) return ;;
+esac
+
+# Start X at login
+[ "$XDG_VTNR" = 1 ] && {
+  pidof Xorg >/dev/null 2>&1 || exec startx
+}
+
+# Setup dircolors
+[ -x /usr/bin/dircolors ] && { test -r ~/.dircolors && { eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"; }; }
+
+# Set GCC colors
+export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
+# Enable shell completion features
+shopt -oq posix || { [ -f /usr/share/bash-completion/bash_completion ] && . /usr/share/bash-completion/bash_completion || [ -f /etc/bash_completion ] && . /etc/bash_completion; }
+
+# Load default command not found handler
+[ -x /usr/lib/command-not-found -o -x /usr/share/command-not-found/command-not-found ] && {
+  function command_not_found_handle {
+    [ -x /usr/lib/command-not-found ] && {
+      /usr/lib/command-not-found -- "$1"
+      return $?
+    }
+    [ -x /usr/share/command-not-found/command-not-found ] && {
+      /usr/share/command-not-found/command-not-found -- "$1"
+      return $?
+    }
+    printf "%s: command not found\n" "$1" >&2
+    return 127
+  }
+}
+
+# Load better command not found handler
+[ -f /etc/bash_command_not_found ] && /etc/bash_command_not_found
+
+HISTCONTROL=ignoreboth
+HISTSIZE=100
+HISTFILESIZE=200
+shopt -s histappend   # append to history, don't overwrite it
+shopt -s checkwinsize # check the window size after each command
+shopt -s globstar     # understand ** as all files in all subdirectories
+shopt -s dotglob      # also include hidden files in globbing
+
+# Set colors
+BLACK="\[\033[90m\]"
+RED="\[\033[91m\]"
+GREEN="\[\033[92m\]"
+YELLOW="\[\033[93m\]"
+BLUE="\[\033[94m\]"
+PURPLE="\[\033[95m\]"
+CYAN="\[\033[96m\]"
+WHITE="\[\033[97m\]"
+RESET="\[\033[0m\]"
+BOLD="\[\033[1m\]"
+
+# Set the prompt
+PROMPT_COMMAND='build_prompt'
+build_prompt() {
+  local ref
+  ref=$(git branch --show-current 2>/dev/null)
+  PS1="${BOLD}${RED}[${GREEN}\A${BLUE}/${CYAN}\u ${YELLOW}\W${RED}]${WHITE}${ref:+(${RED}$ref${WHITE})}\$ ${RESET}"
+}
+
+echo -e "\033[1mWelcome $USER.\nToday is $(date '+%A, %B %d, %Y').\n"
+
+# aliases
+alias cd..='cd ..'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias b='cd -'
+alias n='nano'
+alias v='nvim'
+alias godata='cd $XDG_DATA_HOME'
+alias goconfig='cd $XDG_CONFIG_HOME'
+alias gocache='cd $XDG_CACHE_HOME'
+alias gostate='cd $XDG_STATE_HOME'
+alias grep='grep --color=auto'
+alias l='ls -FX'
+alias ls='ls -FX'
+alias sl='ls -FX'
+alias ll='ls -FXAl'
+alias la='ls -FXAlh'
+alias blk='sudo lsblk -o "NAME,MAJ:MIN,RM,SIZE,RO,TYPE,MOUNTPOINTS,FSTYPE,PARTUUID"'
+alias uuid='sudo blkid'
+alias ufw='sudo ufw'
+alias ufwlog='sudo tail /var/log/ufw.log'
+alias ufws='sudo ufw status verbose'
+alias apt='sudo apt'
+alias ports='sudo lsof -i -n'
+alias duh='du -sh'
+alias dfh='df -h'
+alias sizeof='sudo du -h --max-depth=1'
+alias del='shred -vzun0'
+alias 256='sha256sum'
+alias 512='sha512sum'
+alias cmatrix='cmatrix -Bu2'
+alias date='date "+%b %d %T %Y %z"'
+alias h='history'
+alias j='jobs'
+alias m='make'
+alias mc='make clean'
+alias ytclear='yt-dlp --rm-cache-dir'
+alias live='ytstream'
+alias 4='ytmp4'
+alias 3='ytmp3'
+alias rss='newsboat'
+alias virss='nano ~/.newsboat/urls'
+alias virssconf='nano ~/.newsboat/config'
+alias vimpv='nano ~/.config/mpv/mpv.conf'
+alias net='sudo netstat -putlan'
+alias netrestart='sudo systemctl restart NetworkManager'
+alias netrescan='sudo nmcli device wifi rescan'
+alias topg='top -E g'
+alias battery='upower -i /org/freedesktop/UPower/devices/battery_BAT0'
+alias python='python3'
+alias py='python3'
+alias chwall='feh --bg-fill'
+alias gs='git status'
+alias gadd='git add'
+alias gcommit='git commit'
+alias gcm='git commit -m'
+alias gpush='git push'
+alias gpull='git pull'
+alias gclean='git clean -fdx'
+alias gclone='git clone'
+alias gurl='git remote -v'
+alias refresh='exec bash -l'
+alias restart='exec bash -l'
+alias serve='python3 -m http.server'
+alias wcp='progress -M'
+alias wmv='progress -M'
+alias vol='pulsemixer'
+function d() { dd status=progress bs=1M if="$1" of="$2" conv=fsync; sync; }
+function md { pandoc "$1" -t plain | less; }
+function roffpdf { preconv "$1" | eqn -Tpdf | tbl | groff -mms -Tpdf | zathura -; }
+function cmp256 { diff <(sha256sum "$1") "$2"; }
+function cmp512 { diff <(sha512sum "$1") "$2"; }
+function cmp256f { diff <(sha256sum "$1") <(sha256sum "$2"); }
+function cmp512f { diff <(sha512sum "$1") <(sha512sum "$2"); }
+function killport { sudo fuser -k "$1"/tcp; }
+function netsend { nc "$1" "$2"; }
+function netsendf { nc "$1" "$2" <"$3"; }
+function netlisten { nc -lp "$1"; }
+function netlistenf { nc -lp "$1" >"$2"; }
+function dockerstop { docker stop "$(docker ps -a -q)"; }
+function dockerremove { docker rm -f "$(docker ps -a -q)"; }
+function dockerclear { dockerstop; echo y | docker system prune -a; }
+function rmwhite { for file in *\ *; do mv "$file" "$(echo "$file" | tr ' ' '_')"; done; }
+export HISTFILE="$XDG_CONFIG_HOME/bash/history"
+[ -f "$HOME"/.config/env ] && . "$HOME"/.config/env
+
+# Keybindings
+bind -x '"\C-l": "clear"'
+bind -x '"\C-f": "clear"'

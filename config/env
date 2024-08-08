@@ -1,0 +1,17 @@
+export PAGER='less'
+export EDITOR='nano'
+export LIBVIRT_DEFAULT_URI='qemu:///system'
+export CHROME_EXECUTABLE='/usr/bin/chromium'
+export GPG_TTY="$(tty)"
+export QT_STYLE_OVERRIDE="Adwaita-Dark"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"
+export USERXSESSION="$XDG_CACHE_HOME/X11/xsession"
+export USERXSESSIONRC="$XDG_CACHE_HOME/X11/xsessionrc"
+export ALTUSERXSESSION="$XDG_CACHE_HOME/X11/Xsession"
+export ERRFILE="$XDG_CACHE_HOME/X11/xsession-errors"
+export ICEAUTHORITY="$XDG_CACHE_HOME/ICEauthority"
+export DOTNET_CLI_HOME="$XDG_DATA_HOME/dotnet"

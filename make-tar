@@ -1,0 +1,8 @@
+#! /usr/bin/env bash
+
+# This script makes a tarball of the files in the current directory, ignoring dirs and files started with .
+CURRENT=$(pwd)
+cd ..
+tar -czf debian.tgz --exclude=".*" $(basename $CURRENT)
+mv debian.tgz $CURRENT/
+cd $CURRENT

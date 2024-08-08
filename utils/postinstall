@@ -1,0 +1,59 @@
+#! /usr/bin/env bash
+
+# # Set up the ssh key
+# ssh-keygen -t ed25519 -C me@$USER.com
+# eval "$(ssh-agent -s)"
+# ssh-add $HOME/.ssh/id_ed25519
+# echo "ssh key:"
+# cat $HOME/.ssh/id_ed25519.pub
+
+# # Set up the gpg key
+# gpg --gen-key
+# gpg --list-keys --keyid-format LONG
+# gpg --armor --export "$GPG_KEY_ID"
+# git config --global user.signingkey "$GPG_KEY_ID"
+# git config --global commit.gpgsign true
+# git config --global tag.gpgSign true
+
+# links to usb and hd
+ln -s /media/$USER/USB $HOME
+mv USB usb
+
+# install qemu, libvirt, and virt-manager
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends dnsmasq virt-manager virt-viewer virtinst vde2 bridge-utils netcat-openbsd qemu-kvm qemu-system qemu-system-x86 qemu-utils libvirt-clients libvirt-daemon-system ovmf swtpm guestfs-tools libosinfo-bin tuned gir1.2-spiceclientgtk-3.0
+sudo systemctl disable --now dnsmasq # dnsmasq starts on boot and conflicts with libvirt needed dnsmasq
+# install ssh server
+sudo apt install -y --no-install-recommends openssh-server
+
+# Only ed25519 keys are allowed for ssh
+echo "PubkeyAcceptedKeyTypes ssh-ed25519" | sudo tee -a /etc/ssh/sshd_config >/dev/null
+
+# Ssh server doesnt need to be running all the time
+sudo systemctl disable --now ssh
+
+# tuned profile
+sudo tuned-adm profile virtual-host
+# qemu and libvirt
+sudo virsh net-start default
+sudo virsh net-autostart default
+# sudo virsh net-list --all # check if it is active
+sudo usermod -aG libvirt $USER
+sudo usermod -aG libvirt-qemu $USER
+sudo usermod -aG kvm $USER
+sudo usermod -aG input $USER
+sudo usermod -aG disk $USER
+
+# Virtualization doesnt need to be running all the time
+sudo systemctl disable --now libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket
+sudo systemctl disable --now libvirtd libvirt-guests
+
+# apply the ssh and gpg keys
+openssl enc -d -aes-256-cbc -pbkdf2 -in ./keys/ssh_gpg.tgz | tar -xz -C ~
+
+# Make a swapfile
+sudo fallocate -l 8G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo "/swapfile none swap sw,nofail 0 0" | sudo tee -a /etc/fstab
