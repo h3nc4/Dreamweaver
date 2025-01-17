@@ -84,6 +84,6 @@ else (
 ) & fi
 
 # Start tmux at login
-if [ -z "$TMUX" ] && [ "$(tty)" != "/dev/tty1" ] && [ "$(tty)" != "/dev/tty2" ]; then
+if [ -z "$TMUX" ] && [[ "$(tty)" != /dev/tty[123] ]]; then
 	exec tmux new-session -s "session-$(\date +'%Y%m%d-%H%M%S-%3N')"
 fi

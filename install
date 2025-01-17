@@ -364,7 +364,7 @@ if [ -n "$VIRTUALIZATION" ]; then
 	doas usermod -aG libvirt-qemu "$USER"
 	doas usermod -aG kvm "$USER"
 	doas usermod -aG input "$USER"
-	doas usermod -aG disk "$USER"
+	echo 'firewall_backend = "iptables"' >/etc/libvirt/network.conf # Use iptables as backend
 
 	# Disable services that are not needed at all times
 	if [ -n "$ONSYSTEMD" ]; then
@@ -387,6 +387,8 @@ EOF
 else
 	doas sed -i "s|38400 \(tty[1-6]\)|--autologin $USER 38400 \1|" /etc/inittab # Sysvinit
 fi
+
+doas setcap cap_net_raw+p /bin/ping # Allow non root users to ping
 
 wait # Wait for all background processes to finish
 
