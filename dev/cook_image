@@ -1,0 +1,49 @@
+#!/bin/sh
+set -e
+
+rm -f ./custom-img-netinst.iso
+
+if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
+	wget -q --show-progress --progress=bar 'https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso'
+fi
+
+mkdir -p ./cd
+bsdtar -C ./cd/ -xf ./debian-12.9.0-amd64-netinst.iso
+cd ./cd/
+
+tee ./install.dreamweaver >/dev/null <<EOF
+#!/bin/sh
+set -e
+
+mkdir -p /tmp/dreamweaver
+DEBIAN_FRONTEND=noninteractive apt-get install wget -y
+wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/archive/refs/heads/master.tar.gz
+tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
+chown -R 1000:1000 /tmp/dreamweaver
+/bin/sh /tmp/dreamweaver/utils/setup
+su - h3nc4 -c "AUTOMATED=y /bin/sh -x /tmp/dreamweaver/install"
+rm -rf /tmp/dreamweaver /tmp/dreamweaver.tgz /root/install.dreamweaver
+EOF
+chmod -w ./install.dreamweaver
+
+tee ./preseed.cfg >/dev/null <<EOF
+# Run script
+d-i preseed/early_command string cp /cdrom/install.dreamweaver /root/
+d-i preseed/late_command string cp /root/install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
+EOF
+chmod -w ./preseed.cfg
+
+chmod +w ./isolinux/
+sed -i '/^[[:space:]]*append[[:space:]]\+vga=788[[:space:]]\+initrd=\/install\.amd\/initrd\.gz[[:space:]]\+---[[:space:]]\+quiet/s/$/ preseed\/file=\/cdrom\/preseed.cfg/' ./isolinux/txt.cfg
+chmod -w ./isolinux/
+
+chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
+sed -i '/^[[:space:]]*linux[[:space:]]\+\/install\.amd\/vmlinuz[[:space:]]\+vga=788[[:space:]]\+---[[:space:]]\+quiet/s/$/ preseed\/file=\/cdrom\/preseed.cfg /' ./boot/grub/grub.cfg
+chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
+
+genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../custom-img-netinst.iso ./
+
+isohybrid ../custom-img-netinst.iso
+
+cd - >/dev/null
+rm -rf ./cd
