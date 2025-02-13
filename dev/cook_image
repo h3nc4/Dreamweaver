@@ -34,11 +34,11 @@ EOF
 chmod -w ./preseed.cfg
 
 chmod +w ./isolinux/
-sed -i '/^[[:space:]]*append[[:space:]]\+vga=788[[:space:]]\+initrd=\/install\.amd\/initrd\.gz[[:space:]]\+---[[:space:]]\+quiet/s/$/ preseed\/file=\/cdrom\/preseed.cfg/' ./isolinux/txt.cfg
+patch -p0 <../config/ISO/txt.cfg.diff
 chmod -w ./isolinux/
 
 chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
-sed -i '/^[[:space:]]*linux[[:space:]]\+\/install\.amd\/vmlinuz[[:space:]]\+vga=788[[:space:]]\+---[[:space:]]\+quiet/s/$/ preseed\/file=\/cdrom\/preseed.cfg /' ./boot/grub/grub.cfg
+patch -p0 <../config/ISO/grub.cfg.diff
 chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 
 genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../custom-img-netinst.iso ./

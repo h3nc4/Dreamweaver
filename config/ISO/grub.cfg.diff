@@ -1,0 +1,17 @@
+--- boot/grub/grub.cfg	2025-02-16 11:15:40.156700668 -0300
++++ boot/grub/grub.cfg	2025-02-16 11:15:40.156700668 -0300
+@@ -32,12 +32,12 @@
+ set theme=/boot/grub/theme/1
+ menuentry --hotkey=g 'Graphical install' {
+     set background_color=black
+-    linux    /install.amd/vmlinuz vga=788 --- quiet 
++    linux    /install.amd/vmlinuz vga=788 --- quiet preseed/file=/cdrom/preseed.cfg 
+     initrd   /install.amd/gtk/initrd.gz
+ }
+ menuentry --hotkey=i 'Install' {
+     set background_color=black
+-    linux    /install.amd/vmlinuz vga=788 --- quiet 
++    linux    /install.amd/vmlinuz vga=788 --- quiet preseed/file=/cdrom/preseed.cfg 
+     initrd   /install.amd/initrd.gz
+ }
+ submenu --hotkey=a 'Advanced options ...' {

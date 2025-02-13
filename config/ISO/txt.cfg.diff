@@ -1,0 +1,8 @@
+--- isolinux/txt.cfg	2025-02-16 11:08:48.658599541 -0300
++++ isolinux/txt.cfg	2025-02-16 11:10:14.626202831 -0300
+@@ -1,4 +1,4 @@
+ label install
+ 	menu label ^Install
+ 	kernel /install.amd/vmlinuz
+-	append vga=788 initrd=/install.amd/initrd.gz --- quiet 
++	append vga=788 initrd=/install.amd/initrd.gz --- quiet preseed/file=/cdrom/preseed.cfg 
