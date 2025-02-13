@@ -7,9 +7,9 @@ if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
 	wget -q --show-progress --progress=bar 'https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso'
 fi
 
-mkdir -p ./cd
-bsdtar -C ./cd/ -xf ./debian-12.9.0-amd64-netinst.iso
-cd ./cd/
+TMPDIR=$(mktemp -d)
+bsdtar -C "$TMPDIR" -xf ./debian-12.9.0-amd64-netinst.iso
+cd "$TMPDIR"
 
 tee ./install.dreamweaver >/dev/null <<EOF
 #!/bin/sh
@@ -34,16 +34,16 @@ EOF
 chmod -w ./preseed.cfg
 
 chmod +w ./isolinux/
-patch -p0 <../config/ISO/txt.cfg.diff
+patch -p0 <$OLDPWD/config/ISO/txt.cfg.diff
 chmod -w ./isolinux/
 
 chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
-patch -p0 <../config/ISO/grub.cfg.diff
+patch -p0 <$OLDPWD/config/ISO/grub.cfg.diff
 chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 
-genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../custom-img-netinst.iso ./
+genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o $OLDPWD/custom-img-netinst.iso ./
 
-isohybrid ../custom-img-netinst.iso
+isohybrid $OLDPWD/custom-img-netinst.iso
 
 cd - >/dev/null
-rm -rf ./cd
+rm -rf "$TMPDIR"
