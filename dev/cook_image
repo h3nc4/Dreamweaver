@@ -27,6 +27,12 @@ EOF
 chmod -w ./install.dreamweaver
 
 tee ./preseed.cfg >/dev/null <<EOF
+# Prevent tasksel from installing any tasks (like a desktop environment)
+tasksel tasksel/first multiselect
+
+# Avoid prompting for software selection during the installation
+d-i pkgsel/upgrade select none
+
 # Run script
 d-i preseed/early_command string cp /cdrom/install.dreamweaver /root/
 d-i preseed/late_command string cp /root/install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
