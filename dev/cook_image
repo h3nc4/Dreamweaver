@@ -21,7 +21,7 @@ wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/archive/refs/h
 tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
 chown -R 1000:1000 /tmp/dreamweaver
 /bin/sh /tmp/dreamweaver/utils/setup
-su - h3nc4 -c "AUTOMATED=y /bin/sh -x /tmp/dreamweaver/install"
+su - $(id -nu 1000) -c "AUTOMATED=y /bin/sh -x /tmp/dreamweaver/install"
 rm -rf /tmp/dreamweaver /tmp/dreamweaver.tgz /root/install.dreamweaver
 EOF
 chmod -w ./install.dreamweaver
