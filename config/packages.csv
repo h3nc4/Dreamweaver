@@ -44,6 +44,7 @@ core,gcc,Compilation
 core,make,Compilation
 core,libreadline-dev,Compilation
 core,git,Version control system
+core,patch,code patching tool
 core,nano,Simple text editor by GNU
 core,zip,Zip file creation
 core,unzip,Zip file extraction
