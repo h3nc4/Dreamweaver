@@ -66,7 +66,7 @@ fi
 
 # Installs doas and ntp to ensure security updates
 if [ $AUTOMATED != 'y' ]; then
-	OGUSER="$USER" su -c "$SCRIPT_DIR/utils/setup" || {
+	OGUSER="$USER" su -c "$SCRIPT_DIR/dev/setup" || {
 		echo "Failed to setup the system"
 		exit 1
 	}

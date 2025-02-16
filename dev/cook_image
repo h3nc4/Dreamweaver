@@ -26,7 +26,7 @@ gpg --verify /tmp/dreamweaver.tgz.asc /tmp/dreamweaver.tgz
 
 tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
 chown -R 1000:1000 /tmp/dreamweaver
-/bin/sh /tmp/dreamweaver/utils/setup
+/bin/sh /tmp/dreamweaver/dev/setup
 su - \$(id -nu 1000) -c "AUTOMATED=y /bin/sh /tmp/dreamweaver/install"
 rm -rf /tmp/dreamweaver* /root/install.dreamweaver
 EOF
