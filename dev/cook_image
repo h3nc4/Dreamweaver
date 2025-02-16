@@ -17,13 +17,18 @@ tee ./install.dreamweaver >/dev/null <<EOF
 set -e
 
 mkdir -p /tmp/dreamweaver
-DEBIAN_FRONTEND=noninteractive apt-get install wget -y
-wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/archive/refs/heads/master.tar.gz
+DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates gpg gpg-agent wget
+wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz
+wget -O /tmp/dreamweaver.tgz.asc https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz.asc
+wget -O /tmp/dreamweaver.asc https://h3nc4.com/dreamweaver.asc
+gpg --import /tmp/dreamweaver.asc
+gpg --verify /tmp/dreamweaver.tgz.asc /tmp/dreamweaver.tgz
+
 tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
 chown -R 1000:1000 /tmp/dreamweaver
 /bin/sh /tmp/dreamweaver/utils/setup
-su - \$(id -nu 1000) -c "AUTOMATED=y /bin/sh -x /tmp/dreamweaver/install"
-rm -rf /tmp/dreamweaver /tmp/dreamweaver.tgz /root/install.dreamweaver
+su - \$(id -nu 1000) -c "AUTOMATED=y /bin/sh /tmp/dreamweaver/install"
+rm -rf /tmp/dreamweaver* /root/install.dreamweaver
 EOF
 chmod -w ./install.dreamweaver
 
