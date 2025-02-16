@@ -5,7 +5,7 @@ set -e
 TMPDIR=$(mktemp -d)
 trap "rmdir $TMPDIR" EXIT
 
-tar --transform 's,^./,./Dreamweaver/,' -czf "$TMPDIR/dreamweaver.tgz" --exclude=".git*" .
+tar --transform 's,^./,Dreamweaver/,' -czf "$TMPDIR/dreamweaver.tgz" --exclude=".git*" .
 
 # Move the tarball to the current directory
 mv -f "$TMPDIR/dreamweaver.tgz" .
