@@ -15,21 +15,37 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends \
+            ca-certificates \
+            genisoimage \
             gpg \
-            gpg-agent
-      - name: Create and Sign Release Artifacts
+            gpg-agent \
+            libarchive-tools \
+            patch \
+            syslinux-utils \
+            wget
+      - name: Import gpg key
+        run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Tar repo
         run: |
           ./dev/make_tar
-          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o dreamweaver.tgz.asc dreamweaver.tgz
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Build ISO
+        run: |
+          ./dev/cook_image
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-12.9.0.iso.asc debian-dreamweaver-12.9.0.iso
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dreamweaver.tgz.asc
             dreamweaver.tgz
+            debian-dreamweaver-12.9.0.iso.asc
+            debian-dreamweaver-12.9.0.iso
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
