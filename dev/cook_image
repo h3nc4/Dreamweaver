@@ -53,7 +53,7 @@ chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 patch -p0 <"$OLDPWD/config/ISO/grub.cfg.diff"
 chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 
-genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o "$OLDPWD/debian-dreamweaver-12.9.0.iso" ./
+genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -quiet -o "$OLDPWD/debian-dreamweaver-12.9.0.iso" ./
 
 isohybrid "$OLDPWD/debian-dreamweaver-12.9.0.iso"
 
