@@ -340,19 +340,20 @@ echo "blacklist pcspkr" | doas tee /etc/modprobe.d/blacklist.conf >/dev/null
 # Remove login messages
 doas rm -f /etc/motd /etc/issue /etc/issue.net >/dev/null 2>&1
 
-# Hook to fix cryptsetup-initramfs not updating /etc/crypttab in initramfs
-doas tee /etc/initramfs-tools/hooks/fix_multiple >/dev/null <<EOF
-#!/bin/sh
-cp /etc/crypttab \${DESTDIR}/cryptroot/crypttab
-exit 0
-EOF
-doas chmod +x /etc/initramfs-tools/hooks/fix_multiple
-
 # Trigger rfkill unblock on wlan at boot
-printf "\tpre-up rfkill unblock wlan" | doas tee -a /etc/network/interfaces >/dev/null
+printf "\tpre-up rfkill unblock wlan\n" | doas tee -a /etc/network/interfaces >/dev/null
 
 # Decrypt multiple partitions with the same key
 if [ -f /etc/crypttab ]; then
+
+# Hook to fix cryptsetup-initramfs not updating /etc/crypttab in initramfs
+	doas tee /etc/initramfs-tools/hooks/fix_multiple >/dev/null <<EOF
+	#!/bin/sh
+	cp /etc/crypttab \${DESTDIR}/cryptroot/crypttab
+	exit 0
+EOF
+	doas chmod +x /etc/initramfs-tools/hooks/fix_multiple
+
 	grep -q ",initramfs,keyscript=decrypt_keyctl" /etc/crypttab >/dev/null 2>&1 ||
 		doas sed -i 's/$/,initramfs,keyscript=decrypt_keyctl/g' /etc/crypttab &&
 		doas update-initramfs -u
