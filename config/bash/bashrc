@@ -91,7 +91,10 @@ if [ -s "/tmp/bible.qotd" ]; then
 else
 	echo -e "\033[1mWelcome $USER.\nToday is $(\date '+%A, %B %d, %Y').\n"
 	if ! pgrep -f "bibverse" >/dev/null; then
-		bibverse 2>/dev/null | sed 's/—/\n\t- /' >/tmp/bible.qotd &
+		bibverse 2>/dev/null | sed 's/\(.*\)—/\1\n\t- /' >/tmp/bible.qotd &
 		disown $! # Suppress job finish notification by disowning it
 	fi
 fi
+
+# Remove annoying folders
+rm -rf "$HOME/.pki" "$HOME/Downloads"
