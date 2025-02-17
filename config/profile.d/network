@@ -9,7 +9,7 @@ nettest() {
 
 update() {
 	# Update the system
-	doas apt update && doas apt upgrade
+	apt update && apt upgrade
 	# Update all pipx packages
 	pipx upgrade-all
 	# Update tealdeer's db

@@ -111,3 +111,23 @@ append_bytes() { # Appends harmless empty bytes to a file
 
 	dd if=/dev/zero bs=1 count="$2" >>"$1"
 }
+
+apt() {
+	if [ ! -x /usr/sbin/start-stop-daemon ]; then
+		echo '#!/bin/true' | doas tee /usr/bin/start-stop-daemon >/dev/null
+		doas chmod +x /usr/bin/start-stop-daemon
+		doas apt-get reinstall dpkg -y >/dev/null
+		doas rm /usr/bin/start-stop-daemon
+	fi
+	doas apt "$@"
+}
+
+apt-get() {
+	if [ ! -x /usr/sbin/start-stop-daemon ]; then
+		echo '#!/bin/true' | doas tee /usr/bin/start-stop-daemon >/dev/null
+		doas chmod +x /usr/bin/start-stop-daemon
+		doas apt-get reinstall dpkg -y >/dev/null
+		doas rm /usr/bin/start-stop-daemon
+	fi
+	doas apt-get "$@"
+}
