@@ -37,7 +37,7 @@ tee ./preseed.cfg >/dev/null <<EOF
 tasksel tasksel/first multiselect
 
 # Avoid prompting for software selection during the installation
-d-i pkgsel/upgrade select none
+d-i pkgsel/upgrade select full-upgrade
 
 # Add and run script
 d-i preseed/early_command string cp /cdrom/install.dreamweaver /root/
