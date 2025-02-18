@@ -2,7 +2,9 @@
 
 **Dreamweaver** is a Debian GNU/Linux–based distribution focused on minimalism and free software.
 
-## Usage
+![screenshot.png](./pics/screenshot.png)
+
+## Download
 
 ### ISO
 
@@ -10,13 +12,13 @@ Download the latest release ISO image:
 
 - [Download ISO](https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso)
 
-To verify the integrity of the downloaded image, run the following commands:
+To verify the integrity of the downloaded image, run the following:
 
-```bash
-wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso
-wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso.asc
-wget -qO- https://h3nc4.com/dreamweaver.asc | gpg --import
-gpg --verify debian-dreamweaver-12.9.0.iso.asc debian-dreamweaver-12.9.0.iso
+```console
+$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso
+$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso.asc
+$ wget -qO- https://h3nc4.com/dreamweaver.asc | gpg --import
+$ gpg --verify debian-dreamweaver-12.9.0.iso.asc debian-dreamweaver-12.9.0.iso
 ```
 
 If you see an output similar to the following, the image is verified:
@@ -31,9 +33,17 @@ gpg: Good signature from "Dreamweaver <me@h3nc4.com>" [unknown]
 
 Dreamweaver can also be installed on a already running Debian/Devuan machine.
 
-```bash
+```console
 $ wget -qO- https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz | tar xf -
 $ Dreamweaver/install
+```
+
+## Usage
+
+Press super + q to open a terminal and type:
+
+```console
+$ man dwm
 ```
 
 ## Flags
