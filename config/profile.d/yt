@@ -4,6 +4,7 @@
 
 ytmp3() {
 	[ -z "$1" ] && {
+		mkdir -p "$HOME/media/music/"
 		yt-dlp --extract-audio --audio-format --output "$HOME/media/music/%(title)s.%(ext)s" "$(xclip -o)"
 	} || [ -z "$2" ] && {
 		echo "Warning: No quality specified, defaulting to 5"
@@ -13,12 +14,14 @@ ytmp3() {
 
 ytmp4() {
 	[ -z "$1" ] && {
+		mkdir -p "$HOME/media/vids/"
 		yt-dlp --format "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" --output "$HOME/media/vids/%(title)s.%(ext)s" "$(xclip -o)"
 	} || yt-dlp --format "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]" "$1"
 }
 
 ytwebm() {
 	[ -z "$1" ] && {
+		mkdir -p "$HOME/media/vids/"
 		yt-dlp --format "bv*[ext=webm]+ba[ext=webm]/b[ext=webm]" --output "$HOME/media/vids/%(title)s.%(ext)s" "$(xclip -o)"
 	} || yt-dlp --format "bv*[ext=webm]+ba[ext=webm]/b[ext=webm]" "$1"
 }
@@ -40,6 +43,7 @@ ytstreamp3() {
 
 ytopus() {
 	[ -z "$1" ] && {
+		mkdir -p "$HOME/media/music/"
 		yt-dlp --extract-audio --audio-format opus --output "$HOME/media/music/%(title)s.%(ext)s" "$(xclip -o)"
 	} || yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s' "$1"
 }
