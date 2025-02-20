@@ -109,6 +109,9 @@ dev,libmpv-dev,Video development
 dev,perl,Perl
 dev,chromium,Core browser
 dev,shellcheck,Check if shell scripts follow standards
+dev,awscli,CLI for AWS
+dev,azure-cli,CLI for Azure
+dev,terraform,Scriptable cloud setups
 virt,virt-manager,Frontend
 virt,qemu-system-x86,QEMU for x86 and x86_64
 virt,qemu-utils,QEMU utilities

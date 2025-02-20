@@ -2,3 +2,5 @@ set previewer "~/.config/lf/preview"
 set cleaner "~/.config/lf/cleaner"
 set ratios 1:2:3
 map . set hidden!
+
+set promptfmt "\033[1m\033[91m[\033[96m%u \033[93m%w/\033[92m%f\033[91m]\033[97m $ \033[0m "

@@ -3,6 +3,11 @@
 rm -f /data/data/com.termux/files/usr/etc/motd
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get full-upgrade openssh python python-pip ffmpeg --autoremove --purge -y
+tee -a /data/data/com.termux/files/usr/etc/ssh/sshd_config >/dev/null <<EOF
+PasswordAuthentication no
+ChallengeResponseAuthentication no
+PubkeyAuthentication yes
+EOF
 pip install -U yt-dlp
-echo "alias mp3=\"yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s'\"" >>$HOME/.bashrc
+echo "alias opus=\"yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s'\"" >>$HOME/.bashrc
 echo 'PS1="\[\033[1m\]\[\033[91m\][\[\033[92m\]\A\[\033[94m\]/\[\033[96m\]\u \[\033[93m\]\W\[\033[91m\]]\[\033[97m\]\$ \[\033[0m\]"' >>$HOME/.bashrc

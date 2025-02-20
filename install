@@ -151,10 +151,6 @@ if [ -n "$DEVPACKS" ]; then
 	wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/terraform.gpg >/dev/null &&
 	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/terraform.gpg] https://apt.releases.hashicorp.com bookworm main" |
 	doas tee /etc/apt/sources.list.d/terraform.list >/dev/null
-	# Azure setup
-	wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | doas tee /etc/apt/keyrings/azure.gpg >/dev/null &&
-	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/azure.gpg] https://packages.microsoft.com/repos/azure-cli/ bookworm main" |
-	doas tee /etc/apt/sources.list.d/azure.list >/dev/null
 fi
 
 if [ -n "$GAMES" ]; then
@@ -216,17 +212,6 @@ fromgit https://github.com/h3nc4/dmenu dmenu &
 	fc-cache -fv >/dev/null &&
 	echo "Hack Nerd Font has been installed"
 } &
-
-# Setup aws-cli
-if [ -n "$DEVPACKS" ]; then (
-	gpg --list-keys | grep "aws" >/dev/null && # Fails if the user does not have aws's gpg key
-	wget -qO /tmp/aws.zip.sig https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip.sig &&
-	wget -qO /tmp/aws.zip https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip &&
-	gpg --verify /tmp/aws.zip.sig /tmp/aws.zip >/dev/null && # Fails if files can't be verified
-	unzip /tmp/aws.zip -d /tmp/ >/dev/null 2>&1 &&
-	doas /tmp/aws/install
-	rm -rf /tmp/aws*
-) & fi
 
 # Config grub
 doas tee /etc/default/grub >/dev/null <<EOF

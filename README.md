@@ -40,7 +40,9 @@ $ Dreamweaver/install
 
 ## Usage
 
-Press super + q to open a terminal and type:
+Press super + right shift to open a menu and search any application.
+
+For a full keybind list, press super + q to open a terminal and type:
 
 ```console
 $ man dwm

@@ -95,6 +95,3 @@ else
 		disown $! # Suppress job finish notification by disowning it
 	fi
 fi
-
-# Remove annoying folders
-rm -rf "$HOME/.pki" "$HOME/Downloads"
