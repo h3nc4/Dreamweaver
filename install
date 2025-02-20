@@ -183,17 +183,13 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 	wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"$HOME/.mozilla/firefox/me/user.js"
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
-# Install my builds of dwm, st and dmenu
-fromgit https://github.com/h3nc4/dwm dwm &
-fromgit https://github.com/h3nc4/st st &
-fromgit https://github.com/h3nc4/dmenu dmenu &
-
-# Install my x autoclicker
-(
-	wget -q https://github.com/h3nc4/sxac/releases/latest/download/sxac &&
-	doas install -Dm755 sxac /usr/local/bin/sxac
-	rm -f sxac
-) &
+# Add keyring if not present
+yes 'n' | weavekeys >/dev/null 2>&1
+# Install builds on my repos
+weave dwm &
+weave st &
+weave dmenu &
+weave sxac &
 
 # Setup Nerdfonts
 {
