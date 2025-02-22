@@ -378,7 +378,7 @@ if [ -n "$VIRTUALIZATION" ]; then
 	# Disable services that are not needed at all times
 	if [ -n "$ONSYSTEMD" ]; then
 		doas systemctl disable --now libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket
-		doas systemctl disable --now libvirtd virtlogd polkit
+		doas systemctl disable --now libvirtd libvirt-guests virtlogd polkit
 	fi
 fi
 
