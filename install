@@ -125,7 +125,8 @@ doas apt-get full-upgrade wget apt-transport-https ca-certificates gnupg lsb-rel
 # Initialize xdg directories
 mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 doas chown -R "$USER:$USER" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-echo "hsts-file = $HOME/.cache/wget-hsts" >>"$XDG_CONFIG_HOME/wgetrc" # Set wget hsts file
+echo "hsts-file = $HOME/.cache/wget-hsts" >>"$WGETRC" # Set wget hsts file
+touch "$HOME/.cache/wget-hsts"
 
 if [ -n "$OPTIONALS" ]; then
 	# Signal setup
@@ -184,6 +185,9 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
 # Add keyring if not present
+mkdir -p "$GNUPGHOME"
+chmod 700 "$GNUPGHOME"
+gpg --list-keys >/dev/null # Gen default files if not present already
 yes 'n' | weavekeys >/dev/null 2>&1
 # Install builds on my repos
 weave dwm &
