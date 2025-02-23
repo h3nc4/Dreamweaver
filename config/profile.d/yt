@@ -1,7 +1,3 @@
-#!/bin/sh
-# These can be either sources or called via cli
-# which is useful for keybindings
-
 ytmp3() {
 	[ -z "$1" ] && {
 		mkdir -p "$HOME/media/music/"
@@ -47,10 +43,3 @@ ytopus() {
 		yt-dlp --extract-audio --audio-format opus --output "$HOME/media/music/%(title)s.%(ext)s" "$(xclip -o)"
 	} || yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s' "$1"
 }
-
-[ -z "$1" ] ||
-	case "$1" in
-	mp3) ytmp3;;
-	mp4) ytmp4;;
-	stream) ytstream;;
-	esac
