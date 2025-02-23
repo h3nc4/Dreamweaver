@@ -1,13 +1,19 @@
 #!/bin/sh
-set -e
-set -f
+set -ef
 
 user_host="$USER@$(hostname)"
-read -r capacity </sys/class/power_supply/BAT1/capacity
-read -r status </sys/class/power_supply/BAT1/status
+bat_folder="$(find /sys/class/power_supply/ -maxdepth 2 -name 'BAT*' -print -quit)"
 
-while xsetroot -name " $(date) | ${capacity}% (${status}) | $user_host "; do
+if [ -d "$bat_folder" ]; then
+	while :; do
+		read -r capacity <"$bat_folder/capacity"
+		read -r status <"$bat_folder/status"
+		xsetroot -name " $(date) | ${capacity}% (${status}) | $user_host "
+		sleep 1
+	done
+fi
+
+while :; do
+	xsetroot -name " $(date) | $user_host "
 	sleep 1
-	read -r capacity </sys/class/power_supply/BAT1/capacity
-	read -r status </sys/class/power_supply/BAT1/status
-done &
+done
