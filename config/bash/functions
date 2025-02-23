@@ -9,6 +9,7 @@ lock() {
 }
 
 ll() {
+	# shellcheck disable=SC2012
 	ls -FXAl "$@" | awk 'NR>1 || !/total/'
 }
 
@@ -71,6 +72,7 @@ safecp() {
 }
 
 removei386() {
+	# shellcheck disable=SC2046
 	doas apt autopurge --allow-remove-essential $(dpkg -l | grep -i :i386 | awk '{print $2}') &&
 	doas dpkg --remove-architecture i386
 }

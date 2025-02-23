@@ -1,5 +1,6 @@
 dstop() {
 	if [ -z "$1" ]; then
+		# shellcheck disable=SC2046
 		docker stop $(docker ps -a -q)
 		return
 	fi
@@ -8,6 +9,7 @@ dstop() {
 
 dkill() {
 	if [ -z "$1" ]; then
+		# shellcheck disable=SC2046
 		docker kill $(docker ps -a -q)
 		return
 	fi
@@ -16,6 +18,7 @@ dkill() {
 
 drm() {
 	if [ -z "$1" ]; then
+		# shellcheck disable=SC2046
 		docker rm -f $(docker ps -a -q)
 		return
 	fi
@@ -23,6 +26,7 @@ drm() {
 }
 
 dpurge() {
+	# shellcheck disable=SC2119
 	drm
 	echo y | docker system prune -a
 }
@@ -37,5 +41,5 @@ dstart() {
 
 djs() { # example for vite: 'djs run dev -- --host 0.0.0.0'
 	docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app node:22-slim npm install &&
-	docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app -p 3000:3000 -p 5173:5173 node:22-slim npm $*
+	docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app -p 3000:3000 -p 5173:5173 node:22-slim npm "$*"
 }
