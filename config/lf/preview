@@ -9,6 +9,7 @@ image() {
 	exit 1
 }
 
+# shellcheck disable=SC2015
 case "$(printf "%s\n" "$(readlink -f "$1")" | awk '{print tolower($0)}')" in
 *.tgz | *.tar.gz) tar tzf "$1" ;;
 *.tar.bz2 | *.tbz2) tar tjf "$1" ;;

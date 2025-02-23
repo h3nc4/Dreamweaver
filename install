@@ -65,7 +65,7 @@ fi
 }
 
 # Installs doas and ntp to ensure security updates
-if [ $AUTOMATED != 'y' ]; then
+if [ "$AUTOMATED" != 'y' ]; then
 	OGUSER="$USER" su -c "$SCRIPT_DIR/dev/setup" || {
 		echo "Failed to setup the system"
 		exit 1
@@ -164,6 +164,7 @@ doas apt-get update -qq
 echo "Installing packages. This will take a while."
 
 # Install packages
+# shellcheck disable=SC2046
 doas apt-get install -y $(awk -F, -v opt="$OPTIONALS" -v dev="$DEVPACKS" -v games="$GAMES" -v virt="$VIRTUALIZATION" '
 	$1 == "core" || ($1 == "opt" && opt == "y") || ($1 == "dev" && dev == "y") || ($1 == "games" && games == "y") || ($1 == "virt" && virt == "y") { print $2 }
 ' config/packages.csv)
@@ -185,7 +186,7 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
 # Add keyring if not present
-doas chown -R $USER:$USER "$GNUPGHOME"
+doas chown -R "$USER:$USER" "$GNUPGHOME"
 find "$GNUPGHOME" -type d -print0 | xargs -0 chmod 700
 find "$GNUPGHOME" -type f -print0 | xargs -0 chmod 600
 gpg --list-keys >/dev/null # Gen default files if not present already
