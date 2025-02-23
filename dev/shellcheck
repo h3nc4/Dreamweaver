@@ -1,7 +1,6 @@
 #!/bin/sh
 
-SHELL_SOURCES=$(find ./config/bash ./config/profile.d -type f -print 2>/dev/null)
-SHELL_SOURCES="$SHELL_SOURCES
+SHELL_SOURCES="$(find ./config/bash ./config/profile.d -type f -print 2>/dev/null)
 ./config/X11/xinitrc
 ./config/env
 "
@@ -12,8 +11,12 @@ echo "Checking the following scripts:"
 echo "$SHELL_SCRIPTS"
 echo ""
 echo "$SHELL_SCRIPTS" | xargs shellcheck -s sh -e SC1091
+STATUS1="$?"
 
 echo "Checking the following bash sources:"
 echo "$SHELL_SOURCES"
 echo ""
 echo "$SHELL_SOURCES" | xargs shellcheck -s bash -e SC1091 -e SC1090 -e SC2120
+STATUS2="$?"
+
+exit $(( STATUS1 | STATUS2 ))

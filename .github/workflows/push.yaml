@@ -1,0 +1,18 @@
+name: run shellcheck
+
+on:
+  push:
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm-slim
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends shellcheck
+      - name: Run check
+        run: ./dev/shellcheck
