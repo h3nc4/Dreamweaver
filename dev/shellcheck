@@ -1,9 +1,18 @@
 #!/bin/sh
 
-FILES=$(find . -type f -not -path "./.git/*" -print0 | xargs -0 grep -Il '^#!' | sort -u)
+SHELL_SOURCES=$(find ./config/bash ./config/profile.d -type f -print 2>/dev/null)
+SHELL_SOURCES="$SHELL_SOURCES
+./config/X11/xinitrc
+"
 
-echo "Checking the following files:"
-echo "$FILES"
+SHELL_SCRIPTS=$(find . -type f -not -path "./.git/*" -print0 | xargs -0 grep -Il '^#!' | sort -u)
+
+echo "Checking the following scripts:"
+echo "$SHELL_SCRIPTS"
 echo ""
+echo "$SHELL_SCRIPTS" | xargs shellcheck -s sh -e SC1091
 
-echo "$FILES" | xargs shellcheck -e SC1091
+echo "Checking the following bash sources:"
+echo "$SHELL_SOURCES"
+echo ""
+echo "$SHELL_SOURCES" | xargs shellcheck -s bash -e SC1091 -e SC1090 -e SC2120
