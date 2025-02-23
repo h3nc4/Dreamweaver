@@ -57,7 +57,10 @@ export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 
 # Various
 export BROWSER='firefox'
-export TERM='st-256color'
+case "$(tty)" in # This file is sourced before a tmux session is opened
+/dev/pts/*) export TERM=st-256color ;;
+*) export TERM=linux ;;
+esac
 export MANPAGER='less -R'
 export PAGER='less'
 export EDITOR='nano'
