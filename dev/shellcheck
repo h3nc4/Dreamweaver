@@ -1,0 +1,9 @@
+#!/bin/sh
+
+FILES=$(find . -type f -not -path "./.git/*" -print0 | xargs -0 grep -Il '^#!' | sort -u)
+
+echo "Checking the following files:"
+echo "$FILES"
+echo ""
+
+echo "$FILES" | xargs shellcheck -e SC1091
