@@ -185,8 +185,9 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
 # Add keyring if not present
-mkdir -p "$GNUPGHOME"
-chmod 700 "$GNUPGHOME"
+doas chown -R $USER:$USER "$GNUPGHOME"
+find "$GNUPGHOME" -type d -print0 | xargs -0 chmod 700
+find "$GNUPGHOME" -type f -print0 | xargs -0 chmod 600
 gpg --list-keys >/dev/null # Gen default files if not present already
 yes 'n' | weavekeys >/dev/null 2>&1
 # Install builds on my repos
