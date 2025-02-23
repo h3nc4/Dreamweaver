@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+set -e
 
 # Config grub
 doas tee /etc/default/grub >/dev/null <<EOF

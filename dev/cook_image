@@ -1,7 +1,24 @@
 #!/bin/sh
 set -e
 
+[ "$(id -u)" -eq 0 ] || { echo "Please run this script as root." >&2; exit 1; }
+
+while getopts "l" opt; do
+	case "$opt" in
+	l) LOCAL_TAR=y ;;
+	*)
+		echo "Usage: $0 [-l]" >&2
+		exit 1
+		;;
+	esac
+done
+shift $((OPTIND - 1))
+
 rm -f ./debian-dreamweaver-12.9.0.iso
+
+if [ "$LOCAL_TAR" = "y" ]; then
+	dev/make_tar
+fi
 
 if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
 	wget -q --show-progress --progress=bar 'https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso'
@@ -17,6 +34,15 @@ tee ./install.dreamweaver >/dev/null <<EOF
 set -e
 
 mkdir -p /tmp/dreamweaver
+EOF
+
+if [ "$LOCAL_TAR" = "y" ]; then
+	cp "$OLDPWD/dreamweaver.tgz" ./
+	tee -a ./install.dreamweaver >/dev/null <<EOF
+tar --strip-components=1 -C /tmp/dreamweaver -xf /root/dreamweaver.tgz
+EOF
+else
+	tee -a ./install.dreamweaver >/dev/null <<EOF
 DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates gpg gpg-agent wget
 wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz
 wget -O /tmp/dreamweaver.tgz.asc https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz.asc
@@ -25,6 +51,10 @@ gpg --import /tmp/dreamweaver.asc
 gpg --verify /tmp/dreamweaver.tgz.asc /tmp/dreamweaver.tgz
 
 tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
+EOF
+fi
+
+tee -a ./install.dreamweaver >/dev/null <<EOF
 chown -R 1000:1000 /tmp/dreamweaver
 /bin/sh /tmp/dreamweaver/dev/setup
 su - \$(id -nu 1000) -c "AUTOMATED=y /bin/sh /tmp/dreamweaver/install"
@@ -32,7 +62,7 @@ rm -rf /tmp/dreamweaver* /root/install.dreamweaver
 EOF
 chmod -w ./install.dreamweaver
 
-tee ./preseed.cfg >/dev/null <<EOF
+tee -a ./preseed.cfg >/dev/null <<EOF
 # Prevent tasksel from installing any tasks (like a desktop environment)
 tasksel tasksel/first multiselect
 
@@ -40,9 +70,18 @@ tasksel tasksel/first multiselect
 d-i pkgsel/upgrade select full-upgrade
 
 # Add and run script
+EOF
+if [ "$LOCAL_TAR" = "y" ]; then
+	tee -a ./preseed.cfg >/dev/null <<EOF
+d-i preseed/early_command string cp /cdrom/install.dreamweaver /cdrom/dreamweaver.tgz /root/
+d-i preseed/late_command string cp /root/install.dreamweaver /root/dreamweaver.tgz /target/root/; in-target /bin/sh /root/install.dreamweaver
+EOF
+else
+	tee -a ./preseed.cfg >/dev/null <<EOF
 d-i preseed/early_command string cp /cdrom/install.dreamweaver /root/
 d-i preseed/late_command string cp /root/install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
 EOF
+fi
 chmod -w ./preseed.cfg
 
 chmod +w ./isolinux/
@@ -56,5 +95,3 @@ chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -quiet -o "$OLDPWD/debian-dreamweaver-12.9.0.iso" ./
 
 isohybrid "$OLDPWD/debian-dreamweaver-12.9.0.iso"
-
-cd - >/dev/null
