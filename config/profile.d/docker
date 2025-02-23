@@ -1,7 +1,6 @@
 dstop() {
 	if [ -z "$1" ]; then
-		# shellcheck disable=SC2046
-		docker stop $(docker ps -a -q)
+		docker ps -a -q | xargs docker stop
 		return
 	fi
 	docker stop "$*"
@@ -9,8 +8,7 @@ dstop() {
 
 dkill() {
 	if [ -z "$1" ]; then
-		# shellcheck disable=SC2046
-		docker kill $(docker ps -a -q)
+		docker ps -a -q | xargs docker kill
 		return
 	fi
 	docker kill "$*"
@@ -18,8 +16,7 @@ dkill() {
 
 drm() {
 	if [ -z "$1" ]; then
-		# shellcheck disable=SC2046
-		docker rm -f $(docker ps -a -q)
+		docker ps -a -q | xargs docker rm -f
 		return
 	fi
 	docker rm -f "$*"

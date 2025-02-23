@@ -164,10 +164,9 @@ doas apt-get update -qq
 echo "Installing packages. This will take a while."
 
 # Install packages
-# shellcheck disable=SC2046
-doas apt-get install -y $(awk -F, -v opt="$OPTIONALS" -v dev="$DEVPACKS" -v games="$GAMES" -v virt="$VIRTUALIZATION" '
+awk -F, -v opt="$OPTIONALS" -v dev="$DEVPACKS" -v games="$GAMES" -v virt="$VIRTUALIZATION" '
 	$1 == "core" || ($1 == "opt" && opt == "y") || ($1 == "dev" && dev == "y") || ($1 == "games" && games == "y") || ($1 == "virt" && virt == "y") { print $2 }
-' config/packages.csv)
+' config/packages.csv | xargs doas apt-get install -y
 
 echo "Configuring the system."
 

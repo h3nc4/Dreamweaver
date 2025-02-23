@@ -72,8 +72,7 @@ safecp() {
 }
 
 removei386() {
-	# shellcheck disable=SC2046
-	doas apt autopurge --allow-remove-essential $(dpkg -l | grep -i :i386 | awk '{print $2}') &&
+	dpkg -l | grep -i :i386 | awk '{print $2}' | xargs doas apt autopurge --allow-remove-essential &&
 	doas dpkg --remove-architecture i386
 }
 
