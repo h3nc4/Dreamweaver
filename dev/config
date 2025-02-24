@@ -80,20 +80,22 @@ if [ "\$BASH" ] && [[ \$- == *i* ]]; then
 	fi
 fi
 EOF
-doas ln -s /etc/profile /etc/bash.bashrc
+doas ln -sf /etc/profile /etc/bash.bashrc
 echo "[ \"\$SHLVL\" -eq 1 ] && [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q" | doas tee /etc/bash.bash_logout >/dev/null
 ln -sf "$HOME/.local/profile.d/yt" "$HOME/.local/bin/yt"
 
 # Config backgrounds
 mkdir -p "$HOME/media/wallpapers"
-cp pics/landscape.jpg "$HOME/media/wallpapers/landscape.jpg"
+if [ ! -f "$HOME/media/wallpapers/landscape.jpg" ]; then
+	cp pics/landscape.jpg "$HOME/media/wallpapers/landscape.jpg"
+fi
 
 # Create newsboat dirs
 mkdir -p "$XDG_DATA_HOME/newsboat" "$XDG_CONFIG_HOME/newsboat"
 
 # Config mpv
 mkdir -p "$HOME/.config/mpv"
-ln -s "$HOME/.local/bin/yt-dlp" "$HOME/.config/mpv/yt-dlp"
+ln -sf "$HOME/.local/bin/yt-dlp" "$HOME/.config/mpv/yt-dlp"
 cp config/mpv.conf "$HOME/.config/mpv/mpv.conf"
 
 # Config lf

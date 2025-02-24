@@ -10,13 +10,13 @@ SHELL_SCRIPTS=$(find . -type f -not -path "./.git/*" -print0 | xargs -0 grep -Il
 echo "Checking the following scripts:"
 echo "$SHELL_SCRIPTS"
 echo ""
-echo "$SHELL_SCRIPTS" | xargs shellcheck -s sh -e SC1091
+echo "$SHELL_SCRIPTS" | xargs shellcheck -s sh -e SC1091 -e SC1090
 STATUS1="$?"
 
 echo "Checking the following bash sources:"
 echo "$SHELL_SOURCES"
 echo ""
-echo "$SHELL_SOURCES" | xargs shellcheck -s bash -e SC1091 -e SC1090 -e SC2120
+echo "$SHELL_SOURCES" | xargs shellcheck -s bash -e SC1091 -e SC1090
 STATUS2="$?"
 
 exit $(( STATUS1 | STATUS2 ))

@@ -224,9 +224,6 @@ echo "blacklist pcspkr" | doas tee /etc/modprobe.d/blacklist.conf >/dev/null
 # Remove login messages
 doas rm -f /etc/motd /etc/issue /etc/issue.net >/dev/null 2>&1
 
-# Trigger rfkill unblock on wlan at boot
-printf "\tpre-up rfkill unblock wlan\n" | doas tee -a /etc/network/interfaces >/dev/null
-
 # Decrypt multiple partitions with the same key
 if [ -f /etc/crypttab ]; then
 

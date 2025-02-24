@@ -23,8 +23,7 @@ drm() {
 }
 
 dpurge() {
-	# shellcheck disable=SC2119
-	drm
+	drm ""
 	echo y | docker system prune -a
 }
 
