@@ -60,6 +60,7 @@ core,tty-clock,Curses clock
 core,fonts-noto-cjk,Chinese chars
 core,iw,Network discovery and configuration
 core,lbzip2,Compression algo
+core,gnome-icon-theme,Desktop icons
 opt,signal-desktop,Private messaging
 opt,brave-browser,Alternative browser
 opt,libreoffice-writer,Office suite
