@@ -9,9 +9,9 @@ GRUB_DISTRIBUTOR=Debian
 GRUB_CMDLINE_LINUX_DEFAULT="quiet"
 GRUB_CMDLINE_LINUX=""
 GRUB_DISABLE_OS_PROBER=true
-GRUB_BACKGROUND=/boot/grub/end.jpeg
+GRUB_BACKGROUND=/boot/grub/end.jpg
 EOF
-doas cp pics/end.jpeg /boot/grub/
+doas cp pics/end.jpg /boot/grub/
 doas update-grub
 
 # Config Xorg
