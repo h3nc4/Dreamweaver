@@ -5,7 +5,10 @@ set -e
 
 while getopts "l" opt; do
 	case "$opt" in
-	l) LOCAL_TAR=y ;;
+	l)
+		dev/make_tar
+		LOCAL_TAR=y
+		;;
 	*)
 		echo "Usage: $0 [-l]" >&2
 		exit 1
@@ -15,10 +18,6 @@ done
 shift $((OPTIND - 1))
 
 rm -f ./debian-dreamweaver-12.9.0.iso
-
-if [ "$LOCAL_TAR" = "y" ]; then
-	dev/make_tar
-fi
 
 if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
 	wget -q --show-progress --progress=bar 'https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.9.0-amd64-netinst.iso'
