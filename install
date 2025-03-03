@@ -127,6 +127,11 @@ mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 doas chown -R "$USER:$USER" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
 echo "hsts-file = $HOME/.cache/wget-hsts" >>"$WGETRC" # Set wget hsts file
 touch "$HOME/.cache/wget-hsts"
+mkdir -p "$GNUPGHOME" # Set new GNUPGHOME
+doas chown -R "$USER:$USER" "$GNUPGHOME"
+find "$GNUPGHOME" -type d -print0 | xargs -r -0 chmod 700
+find "$GNUPGHOME" -type f -print0 | xargs -r -0 chmod 600
+gpg --list-keys >/dev/null # Gen default files if not present already
 
 if [ -n "$OPTIONALS" ]; then
 	# Signal setup
@@ -184,12 +189,7 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 	wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"$HOME/.mozilla/firefox/me/user.js"
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
-# Add keyring if not present
-mkdir -p "$GNUPGHOME"
-doas chown -R "$USER:$USER" "$GNUPGHOME"
-find "$GNUPGHOME" -type d -print0 | xargs -r -0 chmod 700
-find "$GNUPGHOME" -type f -print0 | xargs -r -0 chmod 600
-gpg --list-keys >/dev/null # Gen default files if not present already
+# Add dreamweaver keyring if not present
 yes 'n' | weavekeys >/dev/null 2>&1
 # Install builds on my repos
 weave dwm &
