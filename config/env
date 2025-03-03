@@ -54,7 +54,7 @@ export AWS_CONFIG_FILE="$XDG_CONFIG_HOME/aws/config"
 export DOCKER_CONFIG="$XDG_CONFIG_HOME/docker"
 
 # Various
-export BROWSER='firefox'
+export BROWSER='brave-browser'
 case "$(tty)" in # This file is sourced before a tmux session is opened
 /dev/pts/*) export TERM=st-256color ;;
 *) export TERM=linux ;;
