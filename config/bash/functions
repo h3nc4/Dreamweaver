@@ -160,7 +160,7 @@ gdoc2all() {
 		return 1
 	}
 	local tmpdoc
-	tmpdoc="$(mktemp --tmpdir gdocs-XXXXXXXXXX.$format)"
+	tmpdoc="$(mktemp --tmpdir "gdocs-XXXXXXXXXX.$format")"
 	wget -q --show-progress --progress=bar -O "$tmpdoc" "https://docs.google.com/document/d/${BASH_REMATCH[1]}/export?format=${format}" &&
 	echo "File downloaded at $tmpdoc"
 }
