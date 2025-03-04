@@ -4,7 +4,7 @@ set -e
 [ "$(id -u)" -eq 0 ] || { echo "Please run this script as root." >&2; exit 1; }
 OPTIND=1
 while getopts "l" opt; do
-	case "$opt" in
+	case "${opt}" in
 	l)
 		dev/make_tar
 		LOCAL_TAR=y
@@ -24,9 +24,9 @@ if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
 fi
 
 TMPDIR="$(mktemp -d)"
-trap 'rm -rf $TMPDIR' EXIT
-bsdtar -C "$TMPDIR" -xf ./debian-12.9.0-amd64-netinst.iso
-cd "$TMPDIR"
+trap 'rm -rf ${TMPDIR}' EXIT
+bsdtar -C "${TMPDIR}" -xf ./debian-12.9.0-amd64-netinst.iso
+cd "${TMPDIR}"
 
 tee ./install.dreamweaver >/dev/null <<EOF
 #!/bin/sh
@@ -35,8 +35,8 @@ set -e
 mkdir -p /tmp/dreamweaver
 EOF
 
-if [ "$LOCAL_TAR" = "y" ]; then
-	cp "$OLDPWD/dreamweaver.tgz" ./
+if [ "${LOCAL_TAR}" = "y" ]; then
+	cp "${OLDPWD}/dreamweaver.tgz" ./
 	tee -a ./install.dreamweaver >/dev/null <<EOF
 tar --strip-components=1 -C /tmp/dreamweaver -xf /root/dreamweaver.tgz
 EOF
@@ -70,7 +70,7 @@ d-i pkgsel/upgrade select full-upgrade
 
 # Add and run script
 EOF
-if [ "$LOCAL_TAR" = "y" ]; then
+if [ "${LOCAL_TAR}" = "y" ]; then
 	tee -a ./preseed.cfg >/dev/null <<EOF
 d-i preseed/early_command string cp /cdrom/install.dreamweaver /cdrom/dreamweaver.tgz /root/
 d-i preseed/late_command string cp /root/install.dreamweaver /root/dreamweaver.tgz /target/root/; in-target /bin/sh /root/install.dreamweaver
@@ -84,13 +84,13 @@ fi
 chmod -w ./preseed.cfg
 
 chmod +w ./isolinux/
-patch -p0 <"$OLDPWD/config/ISO/txt.cfg.diff"
+patch -p0 <"${OLDPWD}/config/ISO/txt.cfg.diff"
 chmod -w ./isolinux/
 
 chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
-patch -p0 <"$OLDPWD/config/ISO/grub.cfg.diff"
+patch -p0 <"${OLDPWD}/config/ISO/grub.cfg.diff"
 chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
 
-genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -quiet -o "$OLDPWD/debian-dreamweaver-12.9.0.iso" ./
+genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -quiet -o "${OLDPWD}/debian-dreamweaver-12.9.0.iso" ./
 
-isohybrid "$OLDPWD/debian-dreamweaver-12.9.0.iso"
+isohybrid "${OLDPWD}/debian-dreamweaver-12.9.0.iso"

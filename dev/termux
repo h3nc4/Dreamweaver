@@ -9,6 +9,6 @@ ChallengeResponseAuthentication no
 PubkeyAuthentication yes
 EOF
 pip install -U yt-dlp
-echo "alias opus=\"yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s'\"" >>"$HOME/.bashrc"
+echo "alias opus=\"yt-dlp --extract-audio --audio-format opus -o '%(title)s.%(ext)s'\"" >>"${HOME}/.bashrc"
 # shellcheck disable=SC2028
-echo 'PS1="\[\033[1m\]\[\033[91m\][\[\033[92m\]\A\[\033[94m\]/\[\033[96m\]\u \[\033[93m\]\W\[\033[91m\]]\[\033[97m\]\$ \[\033[0m\]"' >>"$HOME/.bashrc"
+echo 'PS1="\[\033[1m\]\[\033[91m\][\[\033[92m\]\A\[\033[94m\]/\[\033[96m\]\u \[\033[93m\]\W\[\033[91m\]]\[\033[97m\]\$ \[\033[0m\]"' >>"${HOME}/.bashrc"

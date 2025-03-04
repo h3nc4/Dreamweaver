@@ -1,18 +1,19 @@
 #!/bin/sh
 
-wallpapers=$(find "$HOME/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
+wallpapers=$(find "${HOME}/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
 trap 'kill $!' USR1
 trap 'kill $!; RELOAD_WALL=y' USR2
 
-if [ -z "$wallpapers" ]; then
+if [ -z "${wallpapers}" ]; then
 	exit 1
 fi
 
 while true; do
-	for wallpaper in $wallpapers; do
-		xwallpaper --zoom "$HOME/media/wallpapers/$wallpaper"
+	for wallpaper in ${wallpapers}; do
+		xwallpaper --zoom "${HOME}/media/wallpapers/${wallpaper}"
 		sleep 300 & wait $!
-		[ "$RELOAD_WALL" = "y" ] && { unset RELOAD_WALL; break; }
+		# shellcheck disable=SC2154
+		[ "${RELOAD_WALL}" = "y" ] && { unset RELOAD_WALL; break; }
 	done
-	wallpapers=$(find "$HOME/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
+	wallpapers=$(find "${HOME}/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
 done

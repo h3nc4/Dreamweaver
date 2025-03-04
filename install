@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2154
 set -e
 
 #******************************************************************************
@@ -22,12 +23,12 @@ set -e
 # Preferrably, select no packages during the installation process
 
 while getopts "odgvm:" opt; do
-	case "$opt" in
+	case "${opt}" in
 	o) OPTIONALS=y ;;
 	d) DEVPACKS=y ;;
 	g) GAMES=y ;;
 	v) VIRTUALIZATION=y ;;
-	m) MIRROR="$OPTARG" ;;
+	m) MIRROR="${OPTARG}" ;;
 	*)
 		echo "Usage: $0 [-o] [-d] [-g] [-v] [-m <mirror>]"
 		exit 1
@@ -58,15 +59,15 @@ fi
 # Check if 'install' exists in the current dir
 [ -x "./install" ] || {
 	SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-	cd "$SCRIPT_DIR" || {
-		echo "Failed to change dir to $SCRIPT_DIR"
+	cd "${SCRIPT_DIR}" || {
+		echo "Failed to change dir to ${SCRIPT_DIR}"
 		exit 1
 	}
 }
 
 # Installs doas and ntp to ensure security updates
-if [ "$AUTOMATED" != 'y' ]; then
-	OGUSER="$USER" su -c "$SCRIPT_DIR/dev/setup" || {
+if [ "${AUTOMATED}" != 'y' ]; then
+	OGUSER="${USER}" su -c "${SCRIPT_DIR}/dev/setup" || {
 		echo "Failed to setup the system"
 		exit 1
 	}
@@ -81,12 +82,12 @@ export DEBIAN_FRONTEND=noninteractive
 
 # Change debian to testing and add unstable to the sources
 doas tee /etc/apt/sources.list >/dev/null <<EOF
-deb $MIRROR stable main non-free-firmware
-deb-src $MIRROR stable main non-free-firmware
-deb $MIRROR testing main non-free-firmware
-deb-src $MIRROR testing main non-free-firmware
-deb $MIRROR unstable main non-free-firmware
-deb-src $MIRROR unstable main non-free-firmware
+deb ${MIRROR} stable main non-free-firmware
+deb-src ${MIRROR} stable main non-free-firmware
+deb ${MIRROR} testing main non-free-firmware
+deb-src ${MIRROR} testing main non-free-firmware
+deb ${MIRROR} unstable main non-free-firmware
+deb-src ${MIRROR} unstable main non-free-firmware
 EOF
 
 # Lower the priority of unstable packages and keep firmware from stable
@@ -123,14 +124,14 @@ doas apt-get full-upgrade wget apt-transport-https ca-certificates gnupg lsb-rel
 }
 
 # Initialize xdg directories
-mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-doas chown -R "$USER:$USER" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
-echo "hsts-file = $HOME/.cache/wget-hsts" >>"$WGETRC" # Set wget hsts file
-touch "$HOME/.cache/wget-hsts"
-mkdir -p "$GNUPGHOME" # Set new GNUPGHOME
-doas chown -R "$USER:$USER" "$GNUPGHOME"
-find "$GNUPGHOME" -type d -print0 | xargs -r -0 chmod 700
-find "$GNUPGHOME" -type f -print0 | xargs -r -0 chmod 600
+mkdir -p "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
+doas chown -R "${USER}:${USER}" "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
+echo "hsts-file = ${HOME}/.cache/wget-hsts" >>"${WGETRC}" # Set wget hsts file
+touch "${HOME}/.cache/wget-hsts"
+mkdir -p "${GNUPGHOME}" # Set new GNUPGHOME
+doas chown -R "${USER}:${USER}" "${GNUPGHOME}"
+find "${GNUPGHOME}" -type d -print0 | xargs -r -0 chmod 700
+find "${GNUPGHOME}" -type f -print0 | xargs -r -0 chmod 600
 gpg --list-keys >/dev/null # Gen default files if not present already
 
 # Brave setup
@@ -138,14 +139,14 @@ wget -qO- https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-k
 echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
 doas tee /etc/apt/sources.list.d/brave.list >/dev/null
 
-if [ -n "$OPTIONALS" ]; then
+if [ -n "${OPTIONALS}" ]; then
 	# Signal setup
 	wget -qO- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor | doas tee /etc/apt/keyrings/signal.gpg >/dev/null &&
 	echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main' |
 	doas tee /etc/apt/sources.list.d/signal.list >/dev/null
 fi
 
-if [ -n "$DEVPACKS" ]; then
+if [ -n "${DEVPACKS}" ]; then
 	# Vscodium setup
 	wget -qO- https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/codium.gpg >/dev/null &&
 	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/codium.gpg] https://download.vscodium.com/debs vscodium main" |
@@ -160,7 +161,7 @@ if [ -n "$DEVPACKS" ]; then
 	doas tee /etc/apt/sources.list.d/terraform.list >/dev/null
 fi
 
-if [ -n "$GAMES" ]; then
+if [ -n "${GAMES}" ]; then
 	# Add the non-free and contrib repositories and enable i386
 	doas sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list
 	doas dpkg --add-architecture i386
@@ -170,14 +171,14 @@ doas apt-get update -qq
 echo "Installing packages. This will take a while."
 
 # Install packages
-awk -F, -v opt="$OPTIONALS" -v dev="$DEVPACKS" -v games="$GAMES" -v virt="$VIRTUALIZATION" '
+awk -F, -v opt="${OPTIONALS}" -v dev="${DEVPACKS}" -v games="${GAMES}" -v virt="${VIRTUALIZATION}" '
 	$1 == "core" || ($1 == "opt" && opt == "y") || ($1 == "dev" && dev == "y") || ($1 == "games" && games == "y") || ($1 == "virt" && virt == "y") { print $2 }
 ' config/packages.csv | xargs doas apt-get install -y
 
 echo "Configuring the system."
 
 # Add user to necessary groups
-doas usermod -aG tty,video,audio,disk,input "$USER"
+doas usermod -aG tty,video,audio,disk,input "${USER}"
 
 doas apt-get update -qq & # Populate the command-not-found cache
 
@@ -193,18 +194,18 @@ weave sxac &
 
 # Setup Nerdfonts
 {
-	mkdir -p "$HOME/.cache" "$HOME/.local/bin" "$HOME/.local/share/fonts"
+	mkdir -p "${HOME}/.cache" "${HOME}/.local/bin" "${HOME}/.local/share/fonts"
 	{
 		wget -qO- "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz" |
-			tar -xJ -C "$HOME/.local/share/fonts"
+			tar -xJ -C "${HOME}/.local/share/fonts"
 	} &
 	{
 		wget -qO- "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Terminus.tar.xz " |
-			tar -xJ -C "$HOME/.local/share/fonts"
+			tar -xJ -C "${HOME}/.local/share/fonts"
 	} &
 	wait
-	mkfontscale "$HOME/.local/share/fonts" &&
-	mkfontdir "$HOME/.local/share/fonts" &&
+	mkfontscale "${HOME}/.local/share/fonts" &&
+	mkfontdir "${HOME}/.local/share/fonts" &&
 	fc-cache -fv >/dev/null &&
 	echo "Hack Nerd Font has been installed"
 } &
@@ -235,59 +236,59 @@ EOF
 		doas update-initramfs -u
 fi
 
-if [ -n "$DEVPACKS" ]; then
+if [ -n "${DEVPACKS}" ]; then
 	# Docker
-	doas usermod -aG docker "$USER"
+	doas usermod -aG docker "${USER}"
 	# Setup initial postgres user and database for development
 	doas su - postgres -c "psql -c \"CREATE USER dev WITH SUPERUSER PASSWORD 'dev';\""
 	doas su - postgres -c "createdb dev"
 	doas su - postgres -c "psql -c \"grant all privileges on database dev to dev;\""
 	# Create data dir on vscodium
 	CODIUM_DATA_DIR="$(dirname "$(readlink -f /usr/bin/codium)")/../data"
-	doas mkdir -p "$CODIUM_DATA_DIR"
-	doas chown "$USER:$USER" "$CODIUM_DATA_DIR"
+	doas mkdir -p "${CODIUM_DATA_DIR}"
+	doas chown "${USER}:${USER}" "${CODIUM_DATA_DIR}"
 	# Disable services that are not needed at all times
-	if [ -n "$ONSYSTEMD" ]; then
+	if [ -n "${ONSYSTEMD}" ]; then
 		doas systemctl disable --now docker.socket
 		doas systemctl disable --now docker containerd postgresql
 	fi
 fi
 
-if [ -n "$OPTIONALS" ] && [ -n "$ONSYSTEMD" ]; then
+if [ -n "${OPTIONALS}" ] && [ -n "${ONSYSTEMD}" ]; then
 	doas systemctl disable --now bluetooth # Disable bluetooth service
 fi
 
-if [ -n "$VIRTUALIZATION" ]; then
+if [ -n "${VIRTUALIZATION}" ]; then
 	doas virsh net-start default
 	doas virsh net-autostart default
-	doas usermod -aG libvirt "$USER"
-	doas usermod -aG libvirt-qemu "$USER"
-	doas usermod -aG kvm "$USER"
-	doas usermod -aG input "$USER"
+	doas usermod -aG libvirt "${USER}"
+	doas usermod -aG libvirt-qemu "${USER}"
+	doas usermod -aG kvm "${USER}"
+	doas usermod -aG input "${USER}"
 	echo 'firewall_backend = "iptables"' >/etc/libvirt/network.conf # Use iptables as backend
 
 	# Disable services that are not needed at all times
-	if [ -n "$ONSYSTEMD" ]; then
+	if [ -n "${ONSYSTEMD}" ]; then
 		doas systemctl disable --now libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket
 		doas systemctl disable --now libvirtd libvirt-guests virtlogd polkit
 	fi
 fi
 
 # Enable autologin for ttys
-if [ -n "$ONSYSTEMD" ]; then
+if [ -n "${ONSYSTEMD}" ]; then
 	for _tty in $(seq 1 6); do # Systemd
-		doas mkdir -p "/etc/systemd/system/getty@tty$_tty.service.d/"
-		doas tee "/etc/systemd/system/getty@tty$_tty.service.d/override.conf" >/dev/null <<EOF
+		doas mkdir -p "/etc/systemd/system/getty@tty${_tty}.service.d/"
+		doas tee "/etc/systemd/system/getty@tty${_tty}.service.d/override.conf" >/dev/null <<EOF
 [Service]
 ExecStart=
-ExecStart=-/sbin/agetty --autologin $USER --noclear %I \$TERM
+ExecStart=-/sbin/agetty --autologin ${USER} --noclear %I \$TERM
 EOF
 	done
 	if [ "$(cat /proc/1/comm)" = "systemd" ]; then
 		doas systemctl daemon-reload
 	fi
 else
-	doas sed -i "s|38400 \(tty[1-6]\)|--autologin $USER 38400 \1|" /etc/inittab # Sysvinit
+	doas sed -i "s|38400 \(tty[1-6]\)|--autologin ${USER} 38400 \1|" /etc/inittab # Sysvinit
 fi
 
 doas setcap cap_net_raw+p /bin/ping # Allow non root users to ping

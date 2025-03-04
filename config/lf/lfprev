@@ -4,17 +4,17 @@ set -e
 
 cleanup() {
 	exec 3>&-
-	rm "$FIFO_UEBERZUG"
+	rm "${FIFO_UEBERZUG}"
 }
 
-if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+if [ -n "${SSH_CLIENT}" ] || [ -n "${SSH_TTY}" ]; then
 	lf "$@"
 else
 	[ ! -d "/tmp/lf" ] && mkdir --parents "/tmp/lf"
 	export FIFO_UEBERZUG="/tmp/lf/ueberzug-$$"
-	mkfifo "$FIFO_UEBERZUG"
-	ueberzug layer -s <"$FIFO_UEBERZUG" -p json &
-	exec 3>"$FIFO_UEBERZUG"
+	mkfifo "${FIFO_UEBERZUG}"
+	ueberzug layer -s <"${FIFO_UEBERZUG}" -p json &
+	exec 3>"${FIFO_UEBERZUG}"
 	trap cleanup EXIT
 	lf "$@" 3>&-
 fi

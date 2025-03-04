@@ -5,7 +5,7 @@ ctar() { # tar -czf
 	fi
 	local out="$1"
 	shift
-	tar -czf - "$@" | pv -s "$(du -sb "$@" | awk '{sum += $1} END {print sum}')" >"$out"
+	tar -czf - "$@" | pv -s "$(du -sb "$@" | awk '{sum += $1} END {print sum}')" >"${out}"
 }
 
 ctarh() { # tar --exclude=".*" -czf
@@ -15,7 +15,7 @@ ctarh() { # tar --exclude=".*" -czf
 	fi
 	local out="$1"
 	shift
-	tar --exclude=".*" -czf - "$@" | pv -s "$(du -sb --exclude=".*" "$@" | awk '{sum += $1} END {print sum}')" >"$out"
+	tar --exclude=".*" -czf - "$@" | pv -s "$(du -sb --exclude=".*" "$@" | awk '{sum += $1} END {print sum}')" >"${out}"
 }
 
 ctarssl() { # tar -czf with encryption
@@ -25,7 +25,7 @@ ctarssl() { # tar -czf with encryption
 	fi
 	local out="$1"
 	shift
-	tar -czf - "$@" | openssl enc -aes-256-cbc -pbkdf2 -salt | tee "$out" >/dev/null
+	tar -czf - "$@" | openssl enc -aes-256-cbc -pbkdf2 -salt | tee "${out}" >/dev/null
 }
 
 untar() { # tar -xzf
@@ -34,7 +34,7 @@ untar() { # tar -xzf
 		echo "Usage: untar <input-file> [target]" 1>&2
 		return 1
 	fi
-	pv "$1" | tar -xzf - -C "$target"
+	pv "$1" | tar -xzf - -C "${target}"
 	unset target
 }
 
@@ -44,7 +44,7 @@ untarssl() {
 		echo "Usage: untarssl <input-file> [target]" 1>&2
 		return 1
 	fi
-	openssl enc -d -aes-256-cbc -pbkdf2 -in "$1" | tar -xzf - -C "$target"
+	openssl enc -d -aes-256-cbc -pbkdf2 -in "$1" | tar -xzf - -C "${target}"
 	unset target
 }
 

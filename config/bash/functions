@@ -4,7 +4,7 @@ burn() {
 }
 
 lock() {
-	doas openvt -c7 -- sh -c "USER=$USER vlock -a; chvt 1" &&
+	doas openvt -c7 -- sh -c "USER=${USER} vlock -a; chvt 1" &&
 	doas chvt 7
 }
 
@@ -51,20 +51,20 @@ cdlink() {
 
 chwallpaper() {
 	if [ -z "$1" ]; then
-		xwallpaper --zoom "$(find "$HOME/media/wallpapers/" -type f | shuf -n 1)"
+		xwallpaper --zoom "$(find "${HOME}/media/wallpapers/" -type f | shuf -n 1)"
 		return
 	fi
 	xwallpaper --zoom "$1"
 }
 
 playMoOII() {
-	dosbox -c "mount c $HOME/.local/games/Master_of_Orion_II/mastori2" -c "c:" -c "Orion2.exe" -conf "$HOME/.local/games/Master_of_Orion_II/dosbox.conf"
+	dosbox -c "mount c ${HOME}/.local/games/Master_of_Orion_II/mastori2" -c "c:" -c "Orion2.exe" -conf "${HOME}/.local/games/Master_of_Orion_II/dosbox.conf"
 }
 
 crop() {
 	local base="${1%.*}"                      # Extract the base filename (without extension)
 	local ext="${1##*.}"                      # Extract the file extension
-	convert "$1" -crop "$2" "$base.crop.$ext" # Append .crop and the original extension
+	convert "$1" -crop "$2" "${base}.crop.${ext}" # Append .crop and the original extension
 }
 
 safecp() {
@@ -82,11 +82,11 @@ createswap() {
 		return 1
 	fi
 	local swapfile="${2:-/swapfile}" # Default to /swapfile
-	doas fallocate -l "$1" "$swapfile" &&
-	doas chmod 600 "$swapfile" &&
-	doas mkswap "$swapfile" &&
-	doas swapon "$swapfile" &&
-	echo "$swapfile none swap sw 0 0" | doas tee -a /etc/fstab >/dev/null
+	doas fallocate -l "$1" "${swapfile}" &&
+	doas chmod 600 "${swapfile}" &&
+	doas mkswap "${swapfile}" &&
+	doas swapon "${swapfile}" &&
+	echo "${swapfile} none swap sw 0 0" | doas tee -a /etc/fstab >/dev/null
 }
 
 removeswap() {
@@ -95,13 +95,13 @@ removeswap() {
 		return 1
 	fi
 	local swapfile="$1"
-	if ! grep -q "^$swapfile " /etc/fstab; then
-		echo "Error: $swapfile is not listed as a swap file in /etc/fstab."
+	if ! grep -q "^${swapfile} " /etc/fstab; then
+		echo "Error: ${swapfile} is not listed as a swap file in /etc/fstab."
 		return 1
 	fi
-	doas swapoff "$swapfile" &&
-	doas rm -f "$swapfile" &&
-	doas sed -i "\|^$swapfile |d" /etc/fstab
+	doas swapoff "${swapfile}" &&
+	doas rm -f "${swapfile}" &&
+	doas sed -i "\|^${swapfile} |d" /etc/fstab
 }
 
 append_bytes() { # Appends harmless empty bytes to a file
@@ -137,7 +137,7 @@ gdoc2all() {
 	OPTIND=1
 	local format=""
 	while getopts "pdorthmez" opt; do
-		case "$opt" in
+		case "${opt}" in
 		p) format="pdf" ;;
 		d) format="docx" ;;
 		o) format="odt" ;;
@@ -160,7 +160,7 @@ gdoc2all() {
 		return 1
 	}
 	local tmpdoc
-	tmpdoc="$(mktemp --tmpdir "gdocs-XXXXXXXXXX.$format")"
-	wget -q --show-progress --progress=bar -O "$tmpdoc" "https://docs.google.com/document/d/${BASH_REMATCH[1]}/export?format=${format}" &&
-	echo "File downloaded at $tmpdoc"
+	tmpdoc="$(mktemp --tmpdir "gdocs-XXXXXXXXXX.${format}")"
+	wget -q --show-progress --progress=bar -O "${tmpdoc}" "https://docs.google.com/document/d/${BASH_REMATCH[1]}/export?format=${format}" &&
+	echo "File downloaded at ${tmpdoc}"
 }

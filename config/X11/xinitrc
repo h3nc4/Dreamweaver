@@ -1,23 +1,23 @@
 export DISPLAY=:0
 
-. "$HOME/.config/env"
+. "${HOME}/.config/env"
 /usr/bin/X -nolisten tcp :0 vt1 -keeptty &
 sleep 2
-xset +fp "$HOME/.local/share/fonts/"
+xset +fp "${HOME}/.local/share/fonts/"
 xset fp rehash
 
-"$HOME/.config/X11/dyn-wallpapers" &
-"$HOME/.config/X11/dyn-status" &
-"$HOME/.config/X11/monitors"
+"${HOME}/.config/X11/dyn-wallpapers" &
+"${HOME}/.config/X11/dyn-status" &
+"${HOME}/.config/X11/monitors"
 
-xwallpaper --zoom "$(find "$HOME/media/wallpapers/" -type f | shuf -n 1)"
+xwallpaper --zoom "$(find "${HOME}/media/wallpapers/" -type f | shuf -n 1)"
 
 # Composer
 compton &
 
 (
-	sleep 2
-	xmodmap "$HOME/.config/X11/xmodmap"
+	sleep 3
+	DISPLAY=:0 xmodmap "${HOME}/.config/X11/xmodmap"
 ) &
 
 exec dwm

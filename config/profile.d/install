@@ -19,7 +19,7 @@ weavekeys() {
 	if [ -f /usr/share/keyrings/dreamweaver.gpg ]; then
 		printf "Keyring exists. Do you want to overwrite it? [y/N]: " >&2
 		read -r answer
-		case "$answer" in
+		case "${answer}" in
 		[Yy]*) doas rm -f /usr/share/keyrings/dreamweaver.gpg ;;
 		*) return 1 ;;
 		esac

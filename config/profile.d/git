@@ -24,8 +24,8 @@ gcnomsg() {
 
 gtag() {
 	local tag=${1:-v0.0.0}
-	git tag -a "$tag" -m "$tag" &&
-		git push origin "$tag"
+	git tag -a "${tag}" -m "${tag}" &&
+		git push origin "${tag}"
 }
 
 gdtag() {
@@ -34,8 +34,8 @@ gdtag() {
 		return 1
 	fi
 	local tag=${1:-v0.0.0}
-	git push -d origin "$tag" &&
-		git tag -d "$tag"
+	git push -d origin "${tag}" &&
+		git tag -d "${tag}"
 }
 
 gcm() {
