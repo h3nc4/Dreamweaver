@@ -1,21 +1,21 @@
 startvirt() {
 	doas systemctl start libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket &&
-	doas systemctl start libvirtd libvirt-guests virtlogd polkit
+		doas systemctl start libvirtd libvirt-guests virtlogd polkit
 }
 
 stopvirt() {
 	doas systemctl stop libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket virtlogd.socket virtlogd-admin.socket &&
-	doas systemctl stop libvirtd libvirt-guests virtlogd polkit
+		doas systemctl stop libvirtd libvirt-guests virtlogd polkit
 }
 
 startdocker() {
 	doas systemctl start docker.socket &&
-	doas systemctl start docker containerd
+		doas systemctl start docker containerd
 }
 
 stopdocker() {
 	doas systemctl stop docker.socket &&
-	doas systemctl stop docker containerd
+		doas systemctl stop docker containerd
 }
 
 startbt() {

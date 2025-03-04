@@ -37,5 +37,5 @@ dstart() {
 
 djs() { # example for vite: 'djs run dev -- --host 0.0.0.0'
 	docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app node:22-slim npm install &&
-	docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app -p 3000:3000 -p 5173:5173 node:22-slim npm "$*"
+		docker run --rm -u "$(id -u):$(id -g)" -v "$(pwd):/node-app" -w /node-app -p 3000:3000 -p 5173:5173 node:22-slim npm "$*"
 }

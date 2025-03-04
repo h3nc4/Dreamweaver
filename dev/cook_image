@@ -1,7 +1,11 @@
 #!/bin/sh
 set -e
 
-[ "$(id -u)" -eq 0 ] || { echo "Please run this script as root." >&2; exit 1; }
+if [ ! "$(id -u)" -eq 0 ]; then
+	echo "Please run this script as root." >&2
+	exit 1
+fi
+
 OPTIND=1
 while getopts "l" opt; do
 	case "${opt}" in

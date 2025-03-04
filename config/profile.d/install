@@ -5,13 +5,13 @@ weave() {
 	fi
 
 	mkdir -p "/tmp/$1" &&
-	wget -q --show-progress --progress=bar -O "/tmp/$1.tgz" "https://github.com/h3nc4/$1/releases/latest/download/$1.tgz" &&
-	wget -q -O "/tmp/$1.tgz.asc" "https://github.com/h3nc4/$1/releases/latest/download/$1.tgz.asc" &&
-	gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --verify "/tmp/$1.tgz.asc" "/tmp/$1.tgz" 2>/dev/null &&
-	tar --strip-components=1 -C "/tmp/$1" -xf "/tmp/$1.tgz" &&
-	(cd "/tmp/$1" && doas ./install) &&
-	echo "Successfully installed $1" >&2 ||
-	echo "Got an error while installing $1" >&2
+		wget -q --show-progress --progress=bar -O "/tmp/$1.tgz" "https://github.com/h3nc4/$1/releases/latest/download/$1.tgz" &&
+		wget -q -O "/tmp/$1.tgz.asc" "https://github.com/h3nc4/$1/releases/latest/download/$1.tgz.asc" &&
+		gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --verify "/tmp/$1.tgz.asc" "/tmp/$1.tgz" 2>/dev/null &&
+		tar --strip-components=1 -C "/tmp/$1" -xf "/tmp/$1.tgz" &&
+		(cd "/tmp/$1" && doas ./install) &&
+		echo "Successfully installed $1" >&2 ||
+		echo "Got an error while installing $1" >&2
 	rm -rf "/tmp/$1/" "/tmp/$1.tgz" "/tmp/$1.tgz.asc"
 }
 
@@ -25,6 +25,6 @@ weavekeys() {
 		esac
 	fi
 	doas mkdir -p /usr/share/keyrings &&
-	doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --fingerprint >/dev/null 2>&1 &&
-	wget -q -O- "https://h3nc4.com/dreamweaver.asc" | doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --import
+		doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --fingerprint >/dev/null 2>&1 &&
+		wget -q -O- "https://h3nc4.com/dreamweaver.asc" | doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --import
 }

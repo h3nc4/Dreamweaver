@@ -136,29 +136,29 @@ gpg --list-keys >/dev/null # Gen default files if not present already
 
 # Brave setup
 wget -qO- https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/brave.gpg >/dev/null &&
-echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
-doas tee /etc/apt/sources.list.d/brave.list >/dev/null
+	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
+	doas tee /etc/apt/sources.list.d/brave.list >/dev/null
 
 if [ -n "${OPTIONALS}" ]; then
 	# Signal setup
 	wget -qO- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor | doas tee /etc/apt/keyrings/signal.gpg >/dev/null &&
-	echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main' |
-	doas tee /etc/apt/sources.list.d/signal.list >/dev/null
+		echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main' |
+		doas tee /etc/apt/sources.list.d/signal.list >/dev/null
 fi
 
 if [ -n "${DEVPACKS}" ]; then
 	# Vscodium setup
 	wget -qO- https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/codium.gpg >/dev/null &&
-	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/codium.gpg] https://download.vscodium.com/debs vscodium main" |
-	doas tee /etc/apt/sources.list.d/vscodium.list >/dev/null
+		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/codium.gpg] https://download.vscodium.com/debs vscodium main" |
+		doas tee /etc/apt/sources.list.d/vscodium.list >/dev/null
 	# Docker setup
 	wget -qO- https://download.docker.com/linux/debian/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/docker.gpg >/dev/null &&
-	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" |
-	doas tee /etc/apt/sources.list.d/docker.list >/dev/null
+		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" |
+		doas tee /etc/apt/sources.list.d/docker.list >/dev/null
 	# Terraform setup
 	wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/terraform.gpg >/dev/null &&
-	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/terraform.gpg] https://apt.releases.hashicorp.com bookworm main" |
-	doas tee /etc/apt/sources.list.d/terraform.list >/dev/null
+		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/terraform.gpg] https://apt.releases.hashicorp.com bookworm main" |
+		doas tee /etc/apt/sources.list.d/terraform.list >/dev/null
 fi
 
 if [ -n "${GAMES}" ]; then
@@ -205,9 +205,9 @@ weave sxac &
 	} &
 	wait
 	mkfontscale "${HOME}/.local/share/fonts" &&
-	mkfontdir "${HOME}/.local/share/fonts" &&
-	fc-cache -fv >/dev/null &&
-	echo "Hack Nerd Font has been installed"
+		mkfontdir "${HOME}/.local/share/fonts" &&
+		fc-cache -fv >/dev/null &&
+		echo "Hack Nerd Font has been installed"
 } &
 
 # Apply various configurations
@@ -223,7 +223,7 @@ doas rm -f /etc/motd /etc/issue /etc/issue.net >/dev/null 2>&1
 # Decrypt multiple partitions with the same key
 if [ -f /etc/crypttab ]; then
 
-# Hook to fix cryptsetup-initramfs not updating /etc/crypttab in initramfs
+	# Hook to fix cryptsetup-initramfs not updating /etc/crypttab in initramfs
 	doas tee /etc/initramfs-tools/hooks/fix_multiple >/dev/null <<EOF
 	#!/bin/sh
 	cp /etc/crypttab \${DESTDIR}/cryptroot/crypttab
@@ -276,7 +276,9 @@ fi
 
 # Enable autologin for ttys
 if [ -n "${ONSYSTEMD}" ]; then
-	for _tty in $(seq 1 6); do # Systemd
+	for _tty in $( # Systemd
+		seq 1 6
+	); do
 		doas mkdir -p "/etc/systemd/system/getty@tty${_tty}.service.d/"
 		doas tee "/etc/systemd/system/getty@tty${_tty}.service.d/override.conf" >/dev/null <<EOF
 [Service]

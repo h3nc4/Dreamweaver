@@ -19,4 +19,8 @@ echo ""
 echo "${SHELL_SOURCES}" | xargs shellcheck -o all -s bash -e SC1091 -e SC1090 -e SC2312 -e SC2292
 STATUS2="$?"
 
-exit $(( STATUS1 | STATUS2 ))
+if [ "$((STATUS1 | STATUS2))" -eq 0 ]; then
+	echo "${SHELL_SCRIPTS} ${SHELL_SOURCES}" | xargs shfmt -w
+fi
+
+exit $((STATUS1 | STATUS2))

@@ -5,7 +5,7 @@ burn() {
 
 lock() {
 	doas openvt -c7 -- sh -c "USER=${USER} vlock -a; chvt 1" &&
-	doas chvt 7
+		doas chvt 7
 }
 
 ll() {
@@ -62,8 +62,8 @@ playMoOII() {
 }
 
 crop() {
-	local base="${1%.*}"                      # Extract the base filename (without extension)
-	local ext="${1##*.}"                      # Extract the file extension
+	local base="${1%.*}"                          # Extract the base filename (without extension)
+	local ext="${1##*.}"                          # Extract the file extension
 	convert "$1" -crop "$2" "${base}.crop.${ext}" # Append .crop and the original extension
 }
 
@@ -73,7 +73,7 @@ safecp() {
 
 removei386() {
 	dpkg -l | grep -i :i386 | awk '{print $2}' | xargs doas apt autopurge --allow-remove-essential &&
-	doas dpkg --remove-architecture i386
+		doas dpkg --remove-architecture i386
 }
 
 createswap() {
@@ -83,10 +83,10 @@ createswap() {
 	fi
 	local swapfile="${2:-/swapfile}" # Default to /swapfile
 	doas fallocate -l "$1" "${swapfile}" &&
-	doas chmod 600 "${swapfile}" &&
-	doas mkswap "${swapfile}" &&
-	doas swapon "${swapfile}" &&
-	echo "${swapfile} none swap sw 0 0" | doas tee -a /etc/fstab >/dev/null
+		doas chmod 600 "${swapfile}" &&
+		doas mkswap "${swapfile}" &&
+		doas swapon "${swapfile}" &&
+		echo "${swapfile} none swap sw 0 0" | doas tee -a /etc/fstab >/dev/null
 }
 
 removeswap() {
@@ -100,8 +100,8 @@ removeswap() {
 		return 1
 	fi
 	doas swapoff "${swapfile}" &&
-	doas rm -f "${swapfile}" &&
-	doas sed -i "\|^${swapfile} |d" /etc/fstab
+		doas rm -f "${swapfile}" &&
+		doas sed -i "\|^${swapfile} |d" /etc/fstab
 }
 
 append_bytes() { # Appends harmless empty bytes to a file
@@ -162,5 +162,5 @@ gdoc2all() {
 	local tmpdoc
 	tmpdoc="$(mktemp --tmpdir "gdocs-XXXXXXXXXX.${format}")"
 	wget -q --show-progress --progress=bar -O "${tmpdoc}" "https://docs.google.com/document/d/${BASH_REMATCH[1]}/export?format=${format}" &&
-	echo "File downloaded at ${tmpdoc}"
+		echo "File downloaded at ${tmpdoc}"
 }

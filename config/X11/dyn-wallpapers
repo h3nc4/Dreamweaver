@@ -11,9 +11,13 @@ fi
 while true; do
 	for wallpaper in ${wallpapers}; do
 		xwallpaper --zoom "${HOME}/media/wallpapers/${wallpaper}"
-		sleep 300 & wait $!
+		sleep 300 &
+		wait $!
 		# shellcheck disable=SC2154
-		[ "${RELOAD_WALL}" = "y" ] && { unset RELOAD_WALL; break; }
+		if [ "${RELOAD_WALL}" = "y" ]; then
+			unset RELOAD_WALL
+			break
+		fi
 	done
 	wallpapers=$(find "${HOME}/media/wallpapers/" -type f -printf '%P\n' | shuf --random-source=/dev/urandom)
 done
