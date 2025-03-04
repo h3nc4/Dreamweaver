@@ -2,7 +2,7 @@
 set -e
 
 [ "$(id -u)" -eq 0 ] || { echo "Please run this script as root." >&2; exit 1; }
-
+OPTIND=1
 while getopts "l" opt; do
 	case "$opt" in
 	l)

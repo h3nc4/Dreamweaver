@@ -132,3 +132,35 @@ apt-get() {
 	fi
 	doas apt-get "$@"
 }
+
+gdoc2all() {
+	OPTIND=1
+	local format=""
+	while getopts "pdorthmez" opt; do
+		case "$opt" in
+		p) format="pdf" ;;
+		d) format="docx" ;;
+		o) format="odt" ;;
+		r) format="rtf" ;;
+		t) format="txt" ;;
+		h) format="html" ;;
+		m) format="md" ;;
+		e) format="epub" ;;
+		z) format="zip" ;;
+		*)
+			echo "Usage: gdoc2all [-p|-d|-o|-r|-t|-h|-m|-e|-z] <Google Docs URL>" >&2
+			return 1
+			;;
+		esac
+	done
+	shift $((OPTIND - 1))
+	format=${format:-pdf}
+	[[ "$1" =~ /d/([^/]+)/ ]] || {
+		echo "Invalid Google Docs URL" >&2
+		return 1
+	}
+	local tmpdoc
+	tmpdoc="$(mktemp --tmpdir gdocs-XXXXXXXXXX.$format)"
+	wget -q --show-progress --progress=bar -O "$tmpdoc" "https://docs.google.com/document/d/${BASH_REMATCH[1]}/export?format=${format}" &&
+	echo "File downloaded at $tmpdoc"
+}
