@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+dev/lint
+
+if [ -z "$(git status --porcelain)" ]; then
+	exit 0
+fi
+
+echo "Formatting changes detected. Committing and pushing changes..."
+git config user.email "github-actions[bot]@users.noreply.github.com"
+git config user.name "github-actions[bot]"
+git add -A
+git commit -m "Apply code formatting [skip ci]"
+git push origin HEAD
