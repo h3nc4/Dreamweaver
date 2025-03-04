@@ -28,6 +28,7 @@ core,ueberzug,Image preview
 core,ffmpegthumbnailer,Thumbnails
 core,nsxiv,Image viewer
 core,imagemagick,Image manipulation
+core,poppler-utils,PDF manipulation
 core,mpv,Media player
 core,ffmpeg,Everything multimedia files
 core,python3-taglib,Media file metadata
