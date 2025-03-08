@@ -62,12 +62,15 @@ core,fonts-noto-cjk,Chinese chars
 core,iw,Network discovery and configuration
 core,lbzip2,Compression algo
 core,gnome-icon-theme,Desktop icons
+core,dosfstools,DOS file system tools
+core,smartmontools,Disk monitoring
 opt,signal-desktop,Private messaging
 opt,libreoffice-writer,Office suite
 opt,libreoffice-calc,Office suite
 opt,simplescreenrecorder,Screen recording
 opt,bluez,Bluetooth
-opt,rfkill,Bluetooth
+opt,tigervnc-viewer,VNC viewer
+opt,transmission-cli,CLI torrent client
 games,steam-installer,Steam
 games,mesa-vulkan-drivers,Steam
 games,libglx-mesa0:i386,Steam
@@ -92,7 +95,8 @@ dev,sqlite3,Databases
 dev,sqlitebrowser,Databases
 dev,software-properties-common,Essential tools
 dev,build-essential,Essential tools
-dev,gdb,Compilation
+dev,gdb,Debugging
+dev,strace,Debugging
 dev,cmake,Compilation
 dev,clang,Compilation
 dev,ninja-build,Compilation
