@@ -28,7 +28,7 @@ if [ ! -f ./debian-12.9.0-amd64-netinst.iso ]; then
 fi
 
 TMPDIR="$(mktemp -d)"
-trap 'rm -rf ${TMPDIR}' EXIT
+trap 'rm -rf "${TMPDIR}"' EXIT
 bsdtar -C "${TMPDIR}" -xf ./debian-12.9.0-amd64-netinst.iso
 cd "${TMPDIR}"
 
@@ -127,24 +127,33 @@ d-i partman/confirm_nooverwrite boolean true
 
 d-i finish-install/reboot_in_progress note
 
-d-i preseed/early_command string cp /cdrom/install.dreamweaver /cdrom/dreamweaver.tgz /root/
-d-i preseed/late_command string cp /root/install.dreamweaver /root/dreamweaver.tgz /target/root/; in-target /bin/sh /root/install.dreamweaver
+d-i preseed/late_command string mv /install.dreamweaver /dreamweaver.tgz /target/root/; in-target /bin/sh /root/install.dreamweaver
 EOF
 else
 	tee -a ./preseed.cfg >/dev/null <<EOF
-d-i preseed/early_command string cp /cdrom/install.dreamweaver /root/
-d-i preseed/late_command string cp /root/install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
+d-i preseed/late_command string mv /install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
 EOF
 fi
 chmod -w ./preseed.cfg
 
-chmod +w ./isolinux/
-patch -p0 <"${OLDPWD}/config/ISO/txt.cfg.diff"
-chmod -w ./isolinux/
+chmod +w -R ./install.amd/
+gunzip ./install.amd/initrd.gz
+if [ "${LOCAL_TAR}" = "y" ]; then
+	echo dreamweaver.tgz | cpio -H newc -o -A -F ./install.amd/initrd
+fi
+echo preseed.cfg | cpio -H newc -o -A -F ./install.amd/initrd
+echo install.dreamweaver | cpio -H newc -o -A -F ./install.amd/initrd
+chmod -w -R ./install.amd/
 
-chmod +w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
-patch -p0 <"${OLDPWD}/config/ISO/grub.cfg.diff"
-chmod -w ./boot/ ./boot/grub/ ./boot/grub/grub.cfg
+rm -f preseed.cfg install.dreamweaver dreamweaver.tgz
+
+TMPSUM="$(mktemp)"
+trap 'rm -rf "${TMPDIR}" "${TMPSUM}"' EXIT
+
+chmod +w md5sum.txt
+find . -follow -type f ! -name md5sum.txt -print0 | xargs -0 md5sum >"${TMPSUM}"
+cp -f "${TMPSUM}" md5sum.txt
+chmod -w md5sum.txt
 
 genisoimage -r -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -quiet -o "${OLDPWD}/debian-dreamweaver-12.9.0.iso" ./
 
