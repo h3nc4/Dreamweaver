@@ -188,7 +188,7 @@ echo "Installing packages. This will take a while."
 # Install packages
 awk -F, -v opt="${OPTIONALS}" -v dev="${DEVPACKS}" -v games="${GAMES}" -v virt="${VIRTUALIZATION}" '
 	$1 == "core" || ($1 == "opt" && opt == "y") || ($1 == "dev" && dev == "y") || ($1 == "games" && games == "y") || ($1 == "virt" && virt == "y") { print $2 }
-' config/packages.csv | xargs doas apt-get install -y
+' ./packages.csv | xargs doas apt-get install -y
 
 echo "Configuring the system."
 
@@ -228,7 +228,9 @@ weave sxac &
 (
 	cd "${XDG_CONFIG_HOME}"
 	if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-		git clone --single-branch --no-tags --depth 1 https://github.com/h3nc4/dotfiles.git .
+		git clone --single-branch --no-tags --depth 1 https://github.com/h3nc4/dotfiles.git
+		mv dotfiles/* .
+		rm -rf dotfiles/
 	fi
 ) &
 
