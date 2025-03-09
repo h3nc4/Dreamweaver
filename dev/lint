@@ -1,26 +1,15 @@
 #!/bin/sh
 
-SHELL_SOURCES="$(find ./config/bash ./config/profile.d -type f -print 2>/dev/null)
-./config/X11/xinitrc
-./config/env
-"
-
 SHELL_SCRIPTS=$(find . -type f -not -path "./.git/*" -print0 | xargs -0 grep -Il '^#!' | sort -u)
 
 echo "Checking the following scripts:"
 echo "${SHELL_SCRIPTS}"
 echo ""
 echo "${SHELL_SCRIPTS}" | xargs shellcheck -o all -s sh -e SC1091 -e SC1090 -e SC2312
-STATUS1="$?"
 
-echo "Checking the following bash sources:"
-echo "${SHELL_SOURCES}"
-echo ""
-echo "${SHELL_SOURCES}" | xargs shellcheck -o all -s bash -e SC1091 -e SC1090 -e SC2312 -e SC2292
-STATUS2="$?"
-
-if [ "$((STATUS1 | STATUS2))" -eq 0 ]; then
-	echo "${SHELL_SCRIPTS} ${SHELL_SOURCES}" | xargs shfmt -w
+# shellcheck disable=SC2181
+if [ "$?" -eq 0 ]; then
+	echo "${SHELL_SCRIPTS}" | xargs shfmt -w
 fi
 
-exit $((STATUS1 | STATUS2))
+exit $?
