@@ -150,16 +150,15 @@ find "${GNUPGHOME}" -type d -print0 | xargs -r -0 chmod 700
 find "${GNUPGHOME}" -type f -print0 | xargs -r -0 chmod 600
 gpg --list-keys >/dev/null # Gen default files if not present already
 
-# Brave setup
-wget -qO- https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/brave.gpg >/dev/null &&
-	echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
-	doas tee /etc/apt/sources.list.d/brave.list >/dev/null
-
 if [ -n "${OPTIONALS}" ]; then
 	# Signal setup
 	wget -qO- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor | doas tee /etc/apt/keyrings/signal.gpg >/dev/null &&
 		echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main' |
 		doas tee /etc/apt/sources.list.d/signal.list >/dev/null
+	# Brave setup
+	wget -qO- https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/brave.gpg >/dev/null &&
+		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
+		doas tee /etc/apt/sources.list.d/brave.list >/dev/null
 fi
 
 if [ -n "${DEVPACKS}" ]; then
@@ -199,6 +198,13 @@ doas usermod -aG tty,video,audio,disk,input "${USER}"
 doas apt-get update -qq & # Populate the command-not-found cache
 
 pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
+
+# Kill spying on firefox
+(
+	firefox -no-remote -headless -CreateProfile "me $HOME/.mozilla/firefox/me" >/dev/null 2>&1 &&
+	rm -rf "$HOME/.mozilla/firefox/me/"* &&
+	wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"$HOME/.mozilla/firefox/me/user.js"
+) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
 # Add dreamweaver keyring if not present
 yes 'n' | weavekeys >/dev/null 2>&1

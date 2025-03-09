@@ -36,7 +36,7 @@ core,pipewire-pulse,Audio server compatible with PulseAudio
 core,wireplumber,Session manager for PipeWire
 core,pulsemixer,PulseAudio mixer
 core,materia-gtk-theme,Dark theme
-core,brave-browser,Browser
+core,firefox,Browser
 core,keepassxc,Password manager
 core,newsboat,RSS reader
 core,command-not-found,Suggests packages for missing commands
@@ -65,6 +65,7 @@ core,gnome-icon-theme,Desktop icons
 core,dosfstools,DOS file system tools
 core,smartmontools,Disk monitoring
 opt,signal-desktop,Private messaging
+opt,brave-browser,Alternative browser
 opt,libreoffice-writer,Office suite
 opt,libreoffice-calc,Office suite
 opt,simplescreenrecorder,Screen recording
