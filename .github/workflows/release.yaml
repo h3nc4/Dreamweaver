@@ -16,6 +16,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get upgrade -y --no-install-recommends \
             ca-certificates \
+            cpio \
             genisoimage \
             gpg \
             gpg-agent \
