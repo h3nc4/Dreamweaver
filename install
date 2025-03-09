@@ -75,9 +75,6 @@ fi
 
 echo "Setting up the system."
 
-. config/env               # Load environment variables
-. config/profile.d/install # Load functions
-
 export DEBIAN_FRONTEND=noninteractive
 
 # Change debian to testing and add unstable to the sources
@@ -122,6 +119,23 @@ doas apt-get full-upgrade wget apt-transport-https ca-certificates gnupg lsb-rel
 	echo "Failed to upgrade the system"
 	exit 1
 }
+
+set +m
+if [ ! -f env ]; then
+	wget -q --show-progress --progress=bar https://github.com/h3nc4/dotfiles/raw/refs/heads/master/env &
+	pids=$!
+fi
+
+if [ ! -f functions ]; then
+	wget -q --show-progress --progress=bar -O ./functions https://github.com/h3nc4/dotfiles/raw/refs/heads/master/profile.d/install &
+	pids="${pids} $!"
+fi
+
+for pid in ${pids}; do wait "${pid}"; done
+set -m
+
+. ./env       # Load environment variables
+. ./functions # Load functions
 
 # Initialize xdg directories
 mkdir -p "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
