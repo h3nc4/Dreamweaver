@@ -143,6 +143,7 @@ if [ "${LOCAL_TAR}" = "y" ]; then
 fi
 echo preseed.cfg | cpio -H newc -o -A -F ./install.amd/initrd
 echo install.dreamweaver | cpio -H newc -o -A -F ./install.amd/initrd
+gzip ./install.amd/initrd
 chmod -w -R ./install.amd/
 
 rm -f preseed.cfg install.dreamweaver dreamweaver.tgz
