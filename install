@@ -140,7 +140,8 @@ set -m
 # Initialize xdg directories
 mkdir -p "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
 doas chown -R "${USER}:${USER}" "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
-echo "hsts-file = ${HOME}/.cache/wget-hsts" >>"${WGETRC}" # Set wget hsts file
+ln -sf "../.config/bin" "${HOME}/.local/bin"        # Set .local/bin to be the same as .config/bin
+echo 'hsts-file = ~/.cache/wget-hsts' >>"${WGETRC}" # Set wget hsts file
 touch "${HOME}/.cache/wget-hsts"
 mkdir -p "${GNUPGHOME}" # Set new GNUPGHOME
 doas chown -R "${USER}:${USER}" "${GNUPGHOME}"
@@ -224,8 +225,84 @@ weave sxac &
 		echo "Hack Nerd Font has been installed"
 } &
 
-# Apply various configurations
-dev/config
+(
+	cd "${XDG_CONFIG_HOME}"
+	if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+		git clone --single-branch --no-tags --depth 1 https://github.com/h3nc4/dotfiles.git .
+	fi
+) &
+
+# Config grub
+doas tee /etc/default/grub >/dev/null <<EOF
+GRUB_DEFAULT=0
+GRUB_TIMEOUT=0
+GRUB_DISTRIBUTOR=Debian
+GRUB_CMDLINE_LINUX_DEFAULT="quiet"
+GRUB_CMDLINE_LINUX=""
+GRUB_DISABLE_OS_PROBER=true
+GRUB_BACKGROUND=/boot/grub/end.jpg
+EOF
+doas cp pics/end.jpg /boot/grub/
+doas update-grub
+
+# Enable touchpad tapping
+doas mkdir -p /etc/X11/xorg.conf.d
+doas tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<'EOF'
+Section "InputClass"
+Identifier "libinput touchpad catchall"
+MatchIsTouchpad "on"
+MatchDevicePath "/dev/input/event*"
+Driver "libinput"
+Option "Tapping" "on"
+EndSection
+EOF
+
+# Enable periodic trim
+doas tee /etc/cron.weekly/fstrim >/dev/null <<'EOF'
+#!/bin/sh
+{
+	echo "===== $(date) ====="
+	fstrim --all --verbose
+} >>/var/log/fstrim.log 2>&1
+EOF
+doas chmod +x /etc/cron.weekly/fstrim
+doas touch /var/log/fstrim.log
+doas chmod 644 /var/log/fstrim.log
+
+# Apply tmux config
+(
+	tmux new-session -d -s tmp_session
+	tmux source-file "${XDG_CONFIG_HOME}/tmux.conf"
+	tmux kill-session -t tmp_session
+) &
+
+# Config bash
+doas rm -f /etc/bash.bashrc "${HOME}/.bashrc" "${HOME}/.bash_profile" "${HOME}/.bash_login" "${HOME}/.bash_logout" "${HOME}/.profile" >/dev/null 2>&1
+doas tee /etc/profile >/dev/null <<EOF
+#!/bin/sh
+if [ -n "\$PROFILED" ]; then
+	return
+fi
+PROFILED=1
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
+if [ -d /etc/profile.d ]; then
+	for i in /etc/profile.d/*.sh; do . "\$i"; done; unset i
+fi
+if [ "\$BASH" ] && [[ \$- == *i* ]]; then
+	function command_not_found_handle (){ echo "bash: \$1: command not found"; return 127; }
+	if [ -f "\${HOME}/.config/bash/bashrc" ]; then
+		. "\${HOME}/.config/bash/bashrc"
+	fi
+fi
+EOF
+doas ln -sf /etc/profile /etc/bash.bashrc
+echo "[ \"\$SHLVL\" -eq 1 ] && [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q" | doas tee /etc/bash.bash_logout >/dev/null
+
+# Config backgrounds
+mkdir -p "${HOME}/media/wallpapers"
+if [ ! -f "${HOME}/media/wallpapers/landscape.jpg" ]; then
+	cp pics/landscape.jpg "${HOME}/media/wallpapers/landscape.jpg"
+fi
 
 # Remove beeping noise in tty and others
 doas sed -i 's/# set bell-style none/set bell-style none/g' /etc/inputrc
