@@ -143,6 +143,7 @@ doas chown -R "${USER}:${USER}" "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_C
 ln -sf "../.config/bin" "${HOME}/.local/bin"        # Set .local/bin to be the same as .config/bin
 echo 'hsts-file = ~/.cache/wget-hsts' >>"${WGETRC}" # Set wget hsts file
 touch "${HOME}/.cache/wget-hsts"
+rm -f "${HOME}/.wget-hsts"
 mkdir -p "${GNUPGHOME}" # Set new GNUPGHOME
 doas chown -R "${USER}:${USER}" "${GNUPGHOME}"
 find "${GNUPGHOME}" -type d -print0 | xargs -r -0 chmod 700
