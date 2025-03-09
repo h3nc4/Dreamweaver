@@ -1,5 +1,0 @@
-bind -x '"\C-l": "clear"'
-bind -x '"\C-f": "clear"'
-bind -x '"\C-x": "lf"'
-bind -x '"\C-t": "tmux"'
-bind -x '"\C-h": "tmux set status"'

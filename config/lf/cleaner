@@ -1,4 +1,0 @@
-#!/bin/sh
-# see https://github.com/thimc/lfimg
-
-[ -n "${FIFO_UEBERZUG}" ] && printf '{"action": "remove", "identifier": "PREVIEW"}\n' >"${FIFO_UEBERZUG}"
