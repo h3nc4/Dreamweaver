@@ -2,7 +2,7 @@
 set -e
 
 mkdir -p /tmp/dreamweaver
-tar --strip-components=1 -C /tmp/dreamweaver -xf /root/dreamweaver.tgz
+tar --strip-components=1 -C /tmp/dreamweaver -xf /root/dreamweaver.tar.gz
 chown -R 1000:1000 /tmp/dreamweaver
 /tmp/dreamweaver/dev/setup
 su - "$(id -nu 1000)" -c "AUTOMATED=y /bin/sh /tmp/dreamweaver/install"

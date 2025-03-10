@@ -31,7 +31,7 @@ jobs:
       - name: Tar repo
         run: |
           ./dev/make_tar
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o dreamweaver.tgz.asc dreamweaver.tgz
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o dreamweaver.tar.gz.asc dreamweaver.tar.gz
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Build ISO
@@ -44,8 +44,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dreamweaver.tgz.asc
-            dreamweaver.tgz
+            dreamweaver.tar.gz.asc
+            dreamweaver.tar.gz
             debian-dreamweaver-12.9.0.iso.asc
             debian-dreamweaver-12.9.0.iso
         env:

@@ -34,7 +34,7 @@ gpg: Good signature from "Dreamweaver <me@h3nc4.com>" [unknown]
 Dreamweaver can also be installed on a already running Debian/Devuan machine.
 
 ```console
-$ wget -qO- https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz | tar xf -
+$ wget -qO- https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tar.gz | tar xf -
 $ Dreamweaver/install
 ```
 

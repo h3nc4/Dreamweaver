@@ -131,12 +131,12 @@ if [ ! -f /usr/share/keyrings/dreamweaver.gpg ]; then
 fi
 
 # Install dotfiles
-wget -q --show-progress --progress=bar -O "/tmp/dotfiles.tgz" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tgz"
-wget -q -O "/tmp/dotfiles.tgz.asc" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tgz.asc"
-gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --verify "/tmp/dotfiles.tgz.asc" "/tmp/dotfiles.tgz" 2>/dev/null
+wget -q --show-progress --progress=bar -O "/tmp/dotfiles.tar.gz" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tar.gz"
+wget -q -O "/tmp/dotfiles.tar.gz.asc" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tar.gz.asc"
+gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --verify "/tmp/dotfiles.tar.gz.asc" "/tmp/dotfiles.tar.gz" 2>/dev/null
 mkdir -p "${HOME}/.config"
-tar --strip-components=1 -C "${HOME}/.config" -xf "/tmp/dotfiles.tgz"
-rm -f "/tmp/dotfiles.tgz" "/tmp/dotfiles.tgz.asc"
+tar --strip-components=1 -C "${HOME}/.config" -xf "/tmp/dotfiles.tar.gz"
+rm -f "/tmp/dotfiles.tar.gz" "/tmp/dotfiles.tar.gz.asc"
 
 . "${HOME}/.config/env"               # Load environment variables
 . "${HOME}/.config/profile.d/install" # Load functions

@@ -2,10 +2,10 @@
 set -e
 
 # Create the tarball in a temporary directory
-TMPFILE=$(mktemp --tmpdir tmp.XXXXXXXXXX.tgz)
+TMPFILE=$(mktemp --tmpdir tmp.XXXXXXXXXX.tar.gz)
 trap 'rm -f ${TMPFILE}' EXIT
 
-tar --transform 's,^./,Dreamweaver/,' -czf "${TMPFILE}" --exclude=.git* --exclude=*.iso* --exclude=dreamweaver.tgz .
+tar --transform 's,^./,Dreamweaver/,' -czf "${TMPFILE}" --exclude=.git* --exclude=*.iso* --exclude=dreamweaver.tar.gz .
 
 # Move the tarball to the current directory
-mv -f "${TMPFILE}" ./dreamweaver.tgz
+mv -f "${TMPFILE}" ./dreamweaver.tar.gz

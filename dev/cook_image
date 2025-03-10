@@ -33,7 +33,7 @@ bsdtar -C "${TMPDIR}" -xf ./debian-12.9.0-amd64-netinst.iso
 cd "${TMPDIR}"
 
 if [ "${LOCAL_TAR}" = "y" ]; then
-	cp "${OLDPWD}/dreamweaver.tgz" ./
+	cp "${OLDPWD}/dreamweaver.tar.gz" ./
 	cp "${OLDPWD}/dev/cfg/iso.local.install" ./iso.install
 	cp "${OLDPWD}/dev/cfg/preseed.local.cfg" ./preseed.cfg
 else
@@ -45,14 +45,14 @@ chmod -w ./preseed.cfg
 chmod +w -R ./install.amd/
 gunzip ./install.amd/initrd.gz
 if [ "${LOCAL_TAR}" = "y" ]; then
-	echo dreamweaver.tgz | cpio -H newc -o -A -F ./install.amd/initrd
+	echo dreamweaver.tar.gz | cpio -H newc -o -A -F ./install.amd/initrd
 fi
 echo preseed.cfg | cpio -H newc -o -A -F ./install.amd/initrd
 echo iso.install | cpio -H newc -o -A -F ./install.amd/initrd
 gzip ./install.amd/initrd
 chmod -w -R ./install.amd/
 
-rm -f preseed.cfg iso.install dreamweaver.tgz
+rm -f preseed.cfg iso.install dreamweaver.tar.gz
 
 TMPSUM="$(mktemp)"
 trap 'rm -rf "${TMPDIR}" "${TMPSUM}"' EXIT
