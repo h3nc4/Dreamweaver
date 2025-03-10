@@ -32,108 +32,14 @@ trap 'rm -rf "${TMPDIR}"' EXIT
 bsdtar -C "${TMPDIR}" -xf ./debian-12.9.0-amd64-netinst.iso
 cd "${TMPDIR}"
 
-tee ./install.dreamweaver >/dev/null <<EOF
-#!/bin/sh
-set -e
-
-mkdir -p /tmp/dreamweaver
-EOF
-
 if [ "${LOCAL_TAR}" = "y" ]; then
 	cp "${OLDPWD}/dreamweaver.tgz" ./
-	tee -a ./install.dreamweaver >/dev/null <<EOF
-tar --strip-components=1 -C /tmp/dreamweaver -xf /root/dreamweaver.tgz
-EOF
+	cp "${OLDPWD}/dev/cfg/iso.local.install" ./iso.install
+	cp "${OLDPWD}/dev/cfg/preseed.local.cfg" ./preseed.cfg
 else
-	tee -a ./install.dreamweaver >/dev/null <<EOF
-DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates gpg gpg-agent wget
-wget -O /tmp/dreamweaver.tgz https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz
-wget -O /tmp/dreamweaver.tgz.asc https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tgz.asc
-wget -O /tmp/dreamweaver.asc https://h3nc4.com/dreamweaver.asc
-gpg --import /tmp/dreamweaver.asc
-gpg --verify /tmp/dreamweaver.tgz.asc /tmp/dreamweaver.tgz
-
-tar --strip-components=1 -C /tmp/dreamweaver -xf /tmp/dreamweaver.tgz
-EOF
+	cp "${OLDPWD}/dev/cfg/iso.install" "${OLDPWD}/dev/cfg/preseed.cfg" ./
 fi
-
-tee -a ./install.dreamweaver >/dev/null <<EOF
-chown -R 1000:1000 /tmp/dreamweaver
-/bin/sh /tmp/dreamweaver/dev/setup
-su - \$(id -nu 1000) -c "AUTOMATED=y /bin/sh /tmp/dreamweaver/install"
-rm -rf /tmp/dreamweaver* /root/install.dreamweaver
-EOF
-chmod -w ./install.dreamweaver
-
-tee -a ./preseed.cfg >/dev/null <<EOF
-# Prevent tasksel from installing any tasks (like a desktop environment)
-tasksel tasksel/first multiselect
-
-# Avoid prompting for software selection during the installation
-d-i pkgsel/upgrade select full-upgrade
-
-# Add and run script
-EOF
-if [ "${LOCAL_TAR}" = "y" ]; then
-	tee -a ./preseed.cfg >/dev/null <<EOF
-d-i auto-install/enable boolean true
-
-d-i debian-installer/language string en_US:en
-d-i debian-installer/country string BR
-d-i debian-installer/locale string en_US.UTF-8
-d-i keyboard-configuration/xkb-keymap select br
-
-d-i netcfg/disable_autoconfig boolean false
-d-i hw-detect/load_firmware boolean false
-d-i netcfg/enable boolean true
-d-i netcfg/choose_interface select auto
-d-i netcfg/hostname string
-d-i netcfg/get_hostname string debian
-d-i netcfg/get_domain string local
-
-d-i passwd/root-login boolean true
-d-i passwd/root-password password root
-d-i passwd/root-password-again password root
-d-i passwd/make-user boolean true
-d-i passwd/user-fullname string
-d-i passwd/username string h3nc4
-d-i passwd/user-password password h3nc4
-d-i passwd/user-password-again password h3nc4
-
-d-i mirror/protocol string http
-d-i mirror/country string BR
-d-i mirror/http/hostname string deb.debian.org
-d-i mirror/http/directory string /debian/
-d-i mirror/http/proxy string
-popularity-contest popularity-contest/participate boolean true
-
-d-i clock-setup/utc boolean true
-d-i time/zone string America/Sao_Paulo
-d-i clock-setup/ntp boolean true
-
-d-i grub-installer/only_debian boolean true
-d-i grub-installer/with_other_os boolean true
-d-i grub-installer/force-efi-extra-removable boolean true
-d-i grub-installer/progress/step_force_efi_removable boolean true
-d-i grub-installer/bootdev string default
-
-d-i partman-auto/method string regular
-d-i partman-auto/init_automatically_partition select biggest_free
-d-i partman-auto/disk string /dev/vda
-d-i partman-partitioning/confirm_write_new_label boolean true
-d-i partman/choose_partition select finish 
-d-i partman/confirm boolean true 
-d-i partman/confirm_nooverwrite boolean true
-
-d-i finish-install/reboot_in_progress note
-
-d-i preseed/late_command string mv /install.dreamweaver /dreamweaver.tgz /target/root/; in-target /bin/sh /root/install.dreamweaver
-EOF
-else
-	tee -a ./preseed.cfg >/dev/null <<EOF
-d-i preseed/late_command string mv /install.dreamweaver /target/root/; in-target /bin/sh /root/install.dreamweaver
-EOF
-fi
+chmod -w ./iso.install
 chmod -w ./preseed.cfg
 
 chmod +w -R ./install.amd/
@@ -142,11 +48,11 @@ if [ "${LOCAL_TAR}" = "y" ]; then
 	echo dreamweaver.tgz | cpio -H newc -o -A -F ./install.amd/initrd
 fi
 echo preseed.cfg | cpio -H newc -o -A -F ./install.amd/initrd
-echo install.dreamweaver | cpio -H newc -o -A -F ./install.amd/initrd
+echo iso.install | cpio -H newc -o -A -F ./install.amd/initrd
 gzip ./install.amd/initrd
 chmod -w -R ./install.amd/
 
-rm -f preseed.cfg install.dreamweaver dreamweaver.tgz
+rm -f preseed.cfg iso.install dreamweaver.tgz
 
 TMPSUM="$(mktemp)"
 trap 'rm -rf "${TMPDIR}" "${TMPSUM}"' EXIT

@@ -120,22 +120,26 @@ doas apt-get full-upgrade wget apt-transport-https ca-certificates gnupg lsb-rel
 	exit 1
 }
 
-set +m
-if [ ! -f env ]; then
-	wget -q --show-progress --progress=bar https://github.com/h3nc4/dotfiles/raw/refs/heads/master/env &
-	pids=$!
+# Add dreamweaver keyring
+if [ ! -f /usr/share/keyrings/dreamweaver.gpg ]; then
+	if [ ! -d "${HOME}/.gnupg" ]; then
+		remove_gnupg=true
+	fi
+	doas mkdir -p /usr/share/keyrings
+	doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --fingerprint >/dev/null 2>&1
+	wget -q -O- "https://h3nc4.com/dreamweaver.asc" | doas gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --import
 fi
 
-if [ ! -f functions ]; then
-	wget -q --show-progress --progress=bar -O ./functions https://github.com/h3nc4/dotfiles/raw/refs/heads/master/profile.d/install &
-	pids="${pids} $!"
-fi
+# Install dotfiles
+wget -q --show-progress --progress=bar -O "/tmp/dotfiles.tgz" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tgz"
+wget -q -O "/tmp/dotfiles.tgz.asc" "https://github.com/h3nc4/dotfiles/releases/latest/download/dotfiles.tgz.asc"
+gpg --no-default-keyring --keyring /usr/share/keyrings/dreamweaver.gpg --verify "/tmp/dotfiles.tgz.asc" "/tmp/dotfiles.tgz" 2>/dev/null
+mkdir -p "${HOME}/.config"
+tar --strip-components=1 -C "${HOME}/.config" -xf "/tmp/dotfiles.tgz"
+rm -f "/tmp/dotfiles.tgz" "/tmp/dotfiles.tgz.asc"
 
-for pid in ${pids}; do wait "${pid}"; done
-set -m
-
-. ./env       # Load environment variables
-. ./functions # Load functions
+. "${HOME}/.config/env"               # Load environment variables
+. "${HOME}/.config/profile.d/install" # Load functions
 
 # Initialize xdg directories
 mkdir -p "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
@@ -149,6 +153,9 @@ doas chown -R "${USER}:${USER}" "${GNUPGHOME}"
 find "${GNUPGHOME}" -type d -print0 | xargs -r -0 chmod 700
 find "${GNUPGHOME}" -type f -print0 | xargs -r -0 chmod 600
 gpg --list-keys >/dev/null # Gen default files if not present already
+if [ -n "${remove_gnupg}" ]; then
+	rm -rf "${HOME}/.gnupg"
+fi
 
 if [ -n "${OPTIONALS}" ]; then
 	# Signal setup
@@ -201,13 +208,11 @@ pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 
 # Kill spying on firefox
 (
-	firefox -no-remote -headless -CreateProfile "me $HOME/.mozilla/firefox/me" >/dev/null 2>&1 &&
-	rm -rf "$HOME/.mozilla/firefox/me/"* &&
-	wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"$HOME/.mozilla/firefox/me/user.js"
+	firefox -no-remote -headless -CreateProfile "me ${HOME}/.mozilla/firefox/me" >/dev/null 2>&1 &&
+		rm -rf "${HOME}/.mozilla/firefox/me/"* &&
+		wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"${HOME}/.mozilla/firefox/me/user.js"
 ) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
 
-# Add dreamweaver keyring if not present
-yes 'n' | weavekeys >/dev/null 2>&1
 # Install builds on my repos
 weave dwm &
 weave st &
@@ -231,15 +236,6 @@ weave sxac &
 		fc-cache -fv >/dev/null &&
 		echo "Hack Nerd Font has been installed"
 } &
-
-(
-	cd "${XDG_CONFIG_HOME}"
-	if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-		git clone --single-branch --no-tags --depth 1 https://github.com/h3nc4/dotfiles.git
-		mv dotfiles/* .
-		rm -rf dotfiles/
-	fi
-) &
 
 # Config grub
 doas tee /etc/default/grub >/dev/null <<EOF
