@@ -18,7 +18,10 @@ jobs:
             shellcheck \
             shfmt
       - uses: actions/checkout@v4
-      - name: Ignore folder ownership
-        run: git config --global --add safe.directory '*'
+      - name: Setup git config
+        run: |
+          git config --global --add safe.directory '*'
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
       - name: Run check
         run: ./dev/ci
