@@ -40,12 +40,22 @@ $ Dreamweaver/install
 
 ## Usage
 
-Press super + right shift to open a menu and search any application.
+### dwm on Xorg
 
-For a full keybind list, press super + q to open a terminal and type:
+Press `super + right shift` to open a menu and search any application.
+
+For a full keybind list, press `super + q` to open a terminal and type:
 
 ```console
 $ man dwm
+```
+
+### dwl on Wayland
+
+To autostart wayland sessions with dwl, create a file named `.wayland` under your profile's `.config` folder
+
+```console
+$ touch ~/.config/.wayland
 ```
 
 ## Flags
