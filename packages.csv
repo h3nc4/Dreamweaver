@@ -64,6 +64,18 @@ core,lbzip2,Compression algo
 core,gnome-icon-theme,Desktop icons
 core,dosfstools,DOS file system tools
 core,smartmontools,Disk monitoring
+core,foot,Minimalistic Wayland terminal emulator
+core,swaybg,Wallpaper util for Wayland
+core,wmenu,dmenu on Wayland
+core,slurp,Region selector for Wayland
+core,grim,Screenshooter for Wayland
+core,libxcb1,Wayland support
+core,libwlroots-0.18,Wayland support
+core,libinput-bin,Wayland support
+core,libwayland-bin,Wayland support
+core,libwlroots10,Wayland support
+core,libxkbcommon0,Wayland support
+core,xwayland,X support on Wayland
 opt,signal-desktop,Private messaging
 opt,brave-browser,Alternative browser
 opt,libreoffice-writer,Office suite
@@ -117,6 +129,7 @@ dev,libmpv-dev,Video development
 dev,perl,Perl
 dev,chromium,Core browser
 dev,shellcheck,Check if shell scripts follow standards
+dev,shfmt,Format shell scripts
 dev,awscli,CLI for AWS
 dev,azure-cli,CLI for Azure
 dev,terraform,Scriptable cloud setups

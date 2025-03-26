@@ -255,6 +255,7 @@ weave dwm &
 weave st &
 weave dmenu &
 weave sxac &
+weave dwl &
 
 # Setup Nerdfonts
 {
