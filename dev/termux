@@ -3,7 +3,7 @@
 rm -f /data/data/com.termux/files/usr/etc/motd
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get full-upgrade openssh python python-pip ffmpeg --autoremove --purge -y
-tee -a /data/data/com.termux/files/usr/etc/ssh/sshd_config >/dev/null <<EOF
+cat >>/data/data/com.termux/files/usr/etc/ssh/sshd_config <<EOF
 PasswordAuthentication no
 ChallengeResponseAuthentication no
 PubkeyAuthentication yes

@@ -78,13 +78,25 @@ echo "Setting up the system."
 export DEBIAN_FRONTEND=noninteractive
 
 # Change debian to testing and add unstable to the sources
-doas tee /etc/apt/sources.list >/dev/null <<EOF
-deb ${MIRROR} stable main non-free-firmware
-deb-src ${MIRROR} stable main non-free-firmware
-deb ${MIRROR} testing main non-free-firmware
-deb-src ${MIRROR} testing main non-free-firmware
-deb ${MIRROR} unstable main non-free-firmware
-deb-src ${MIRROR} unstable main non-free-firmware
+doas rm -f /etc/apt/sources.list
+doas tee /etc/apt/sources.list.d/debian.sources >/dev/null <<EOF
+Types: deb deb-src
+URIs: http://deb.debian.org/debian/
+Suites: stable
+Components: main non-free-firmware 
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: http://deb.debian.org/debian/
+Suites: testing
+Components: main non-free-firmware 
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: http://deb.debian.org/debian/
+Suites: unstable
+Components: main non-free-firmware 
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
 
 # Lower the priority of unstable packages and keep firmware from stable
@@ -97,7 +109,7 @@ Package: *
 Pin: release a=unstable
 Pin-Priority: 10
 
-Package: firmware-amd-graphics firmware-misc-nonfree
+Package: firmware-misc-nonfree
 Pin: release a=stable
 Pin-Priority: 1001
 EOF
@@ -160,32 +172,57 @@ fi
 if [ -n "${OPTIONALS}" ]; then
 	# Signal setup
 	wget -qO- https://updates.signal.org/desktop/apt/keys.asc | gpg --dearmor | doas tee /etc/apt/keyrings/signal.gpg >/dev/null &&
-		echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/signal.gpg] https://updates.signal.org/desktop/apt xenial main' |
-		doas tee /etc/apt/sources.list.d/signal.list >/dev/null
+		doas tee /etc/apt/sources.list.d/signal.sources >/dev/null <<EOF
+Types: deb
+URIs: https://updates.signal.org/desktop/apt/
+Suites: xenial
+Components: main 
+Signed-By: /etc/apt/keyrings/signal.gpg
+EOF
 	# Brave setup
 	wget -qO- https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/brave.gpg >/dev/null &&
-		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/brave.gpg] https://brave-browser-apt-release.s3.brave.com/ stable main" |
-		doas tee /etc/apt/sources.list.d/brave.list >/dev/null
+		doas tee /etc/apt/sources.list.d/brave.sources >/dev/null <<EOF
+Types: deb
+URIs: https://brave-browser-apt-release.s3.brave.com/
+Suites: stable
+Components: main
+Signed-By: /etc/apt/keyrings/brave.gpg
+EOF
 fi
 
 if [ -n "${DEVPACKS}" ]; then
 	# Vscodium setup
 	wget -qO- https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor | doas tee /etc/apt/keyrings/codium.gpg >/dev/null &&
-		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/codium.gpg] https://download.vscodium.com/debs vscodium main" |
-		doas tee /etc/apt/sources.list.d/vscodium.list >/dev/null
+		doas tee /etc/apt/sources.list.d/vscodium.sources >/dev/null <<EOF
+Types: deb
+URIs: https://download.vscodium.com/debs
+Suites: vscodium
+Components: main
+Signed-By: /etc/apt/keyrings/codium.gpg
+EOF
 	# Docker setup
 	wget -qO- https://download.docker.com/linux/debian/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/docker.gpg >/dev/null &&
-		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian bookworm stable" |
-		doas tee /etc/apt/sources.list.d/docker.list >/dev/null
+		doas tee /etc/apt/sources.list.d/docker.sources >/dev/null <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: bookworm
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.gpg
+EOF
 	# Terraform setup
 	wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/terraform.gpg >/dev/null &&
-		echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/terraform.gpg] https://apt.releases.hashicorp.com bookworm main" |
-		doas tee /etc/apt/sources.list.d/terraform.list >/dev/null
+		doas tee /etc/apt/sources.list.d/terraform.sources >/dev/null <<EOF
+Types: deb
+URIs: https://apt.releases.hashicorp.com
+Suites: bookworm
+Components: main
+Signed-By: /etc/apt/keyrings/terraform.gpg
+EOF
 fi
 
 if [ -n "${GAMES}" ]; then
 	# Add the non-free and contrib repositories and enable i386
-	doas sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list
+	doas sed -i 's/main/main contrib non-free/g' /etc/apt/sources.list.d/debian.sources
 	doas dpkg --add-architecture i386
 fi
 
