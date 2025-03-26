@@ -10,7 +10,6 @@ jobs:
     container:
       image: debian:bookworm-slim
     steps:
-      - uses: actions/checkout@v4
       - name: Install dependencies
         run: |
           apt-get update
@@ -18,12 +17,15 @@ jobs:
             ca-certificates \
             cpio \
             genisoimage \
+            gh \
+            git \
             gpg \
             gpg-agent \
             libarchive-tools \
             patch \
             syslinux-utils \
             wget
+      - uses: actions/checkout@v4
       - name: Import gpg key
         run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
         env:
@@ -37,16 +39,12 @@ jobs:
       - name: Build ISO
         run: |
           ./dev/cook_image
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-12.9.0.iso.asc debian-dreamweaver-12.9.0.iso
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-12.10.0.iso.asc debian-dreamweaver-12.10.0.iso
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            dreamweaver.tar.gz.asc
-            dreamweaver.tar.gz
-            debian-dreamweaver-12.9.0.iso.asc
-            debian-dreamweaver-12.9.0.iso
+        run: |
+          git config --global safe.directory '*'
+          gh release create ${{ github.ref_name }} dreamweaver.tar.gz.asc dreamweaver.tar.gz debian-dreamweaver-12.10.0.iso.asc debian-dreamweaver-12.10.0.iso
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
