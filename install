@@ -296,7 +296,7 @@ if [ -n "${WAYLAND}" ]; then
 fi
 
 # Setup Nerdfonts
-{
+if [ -z "${HEADLESS}" ]; then {
 	mkdir -p "${HOME}/.cache" "${HOME}/.local/bin" "${HOME}/.local/share/fonts"
 	{
 		wget -qO- "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz" |
@@ -311,7 +311,7 @@ fi
 		mkfontdir "${HOME}/.local/share/fonts" &&
 		fc-cache -fv >/dev/null &&
 		echo "Hack Nerd Font has been installed"
-} &
+} & fi
 
 # Config grub
 if [ -d /boot/grub ]; then
