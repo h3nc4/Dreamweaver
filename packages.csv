@@ -3,6 +3,7 @@ core,man-db,Manual pages
 core,manpages,Manual pages
 core,keyutils,Scripts for mounting encrypted partitions
 core,openssh-client,Secure remote access
+core,gnupg,encryption and signatures
 core,telnet,Unsecure remote access
 core,rfkill,Manages wireless devices
 core,nmap,Network scanner
@@ -15,29 +16,18 @@ core,progress,Check progress of coreutils
 core,pv,Pipe progress viewer
 core,tmux,Terminal multiplexer
 core,lm-sensors,Hardware monitoring
-core,xserver-xorg,Display server
-core,xinit,Startup scripts for Xorg
-core,compton,Modern compositor for Xorg
-core,xclip,Clipboard manager
-core,xwallpaper,Sets up wallpapers
-core,maim,Screen capture
-core,arandr,Monitor configuration
 core,brightnessctl,Controls brightness on a hardware level
 core,lf,File manager
-core,ueberzug,Image preview
 core,ffmpegthumbnailer,Thumbnails
-core,nsxiv,Image viewer
 core,imagemagick,Image manipulation
 core,poppler-utils,PDF manipulation
 core,mpv,Media player
 core,ffmpeg,Everything multimedia files
 core,python3-taglib,Media file metadata
 core,pipewire-pulse,Audio server compatible with PulseAudio
+core,pipewire-audio,Handle many devices
 core,wireplumber,Session manager for PipeWire
 core,pulsemixer,PulseAudio mixer
-core,materia-gtk-theme,Dark theme
-core,firefox,Browser
-core,keepassxc,Password manager
 core,newsboat,RSS reader
 core,command-not-found,Suggests packages for missing commands
 core,bash-completion,Tab completion
@@ -53,6 +43,7 @@ core,xz-utils,XZ compression
 core,pipx,Python package manager
 core,xdg-utils,xdg-open
 core,libfile-mimeinfo-perl,File type detection for xdg-open
+core,curl,Communicate with servers
 core,rsync,File synchronization
 core,tor,Onion services access
 core,torsocks,Onion services access
@@ -61,21 +52,32 @@ core,tty-clock,Curses clock
 core,fonts-noto-cjk,Chinese chars
 core,iw,Network discovery and configuration
 core,lbzip2,Compression algo
-core,gnome-icon-theme,Desktop icons
 core,dosfstools,DOS file system tools
 core,smartmontools,Disk monitoring
-core,foot,Minimalistic Wayland terminal emulator
-core,swaybg,Wallpaper util for Wayland
-core,wmenu,dmenu on Wayland
-core,slurp,Region selector for Wayland
-core,grim,Screenshooter for Wayland
-core,libxcb1,Wayland support
-core,libwlroots-0.18,Wayland support
-core,libinput-bin,Wayland support
-core,libwayland-bin,Wayland support
-core,libwlroots10,Wayland support
-core,libxkbcommon0,Wayland support
-core,xwayland,X support on Wayland
+gui,nsxiv,Image viewer
+gui,materia-gtk-theme,Dark theme
+gui,firefox,Browser
+gui,keepassxc,Password manager
+xorg,xserver-xorg,Display server
+xorg,xinit,Startup scripts for Xorg
+xorg,compton,Modern compositor for Xorg
+xorg,xclip,Clipboard manager
+xorg,xwallpaper,Sets up wallpapers
+xorg,maim,Screen capture
+xorg,arandr,Monitor configuration
+xorg,ueberzug,Image preview
+wayl,foot,Minimalistic Wayland terminal emulator
+wayl,swaybg,Wallpaper util for Wayland
+wayl,wmenu,dmenu on Wayland
+wayl,slurp,Region selector for Wayland
+wayl,grim,Screenshooter for Wayland
+wayl,libxcb1,Wayland support
+wayl,libwlroots-0.18,Wayland support
+wayl,libinput-bin,Wayland support
+wayl,libwayland-bin,Wayland support
+wayl,libwlroots10,Wayland support
+wayl,libxkbcommon0,Wayland support
+wayl,xwayland,X support on Wayland
 opt,signal-desktop,Private messaging
 opt,brave-browser,Alternative browser
 opt,libreoffice-writer,Office suite

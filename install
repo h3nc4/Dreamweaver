@@ -22,19 +22,45 @@ set -e
 # This script must be run by your user on a fresh Debian/Devuan net-install
 # Preferrably, select no packages during the installation process
 
-while getopts "odgvm:" opt; do
+while getopts "odgvhxwm:" opt; do
 	case "${opt}" in
-	o) OPTIONALS=y ;;
-	d) DEVPACKS=y ;;
-	g) GAMES=y ;;
-	v) VIRTUALIZATION=y ;;
+	o) OPTIONALS=opt ;;
+	d) DEVPACKS=dev ;;
+	g) GAMES=games ;;
+	v) VIRTUALIZATION=virt ;;
+	h) HEADLESS=1 ;;
+	x) XORG=xorg ;;
+	w) WAYLAND=wayl ;;
 	m) MIRROR="${OPTARG}" ;;
 	*)
-		echo "Usage: $0 [-o] [-d] [-g] [-v] [-m <mirror>]"
+		echo "Usage: $0 [-o] [-d] [-g] [-v] [-h] [-x] [-w] [-m <mirror>]
+  -o    Include extra software
+  -d    Include development software
+  -g    Include gaming software
+  -v    Include virtualization software
+  -h    Headless only (disables -x and -w)
+  -x    Include Xorg (on if neither -w or -h is passed) (ignored if -h is set)
+  -w    Include Wayland (ignored if -h is set)
+  -m    Specify a mirror" >&2
 		exit 1
 		;;
 	esac
 done
+
+if [ -n "${HEADLESS}" ] && { [ -n "${XORG}" ] || [ -n "${WAYLAND}" ]; }; then
+	echo "Warning: -h (headless) overrides -x and -w; graphical options will be ignored." >&2
+fi
+
+if [ -n "${HEADLESS}" ]; then
+	XORG=
+	WAYLAND=
+	GUI=
+else
+	if [ -z "${WAYLAND}" ]; then
+		XORG=${XORG:-"xorg"}
+	fi
+	GUI=gui
+fi
 
 # If no mirror is provided, set a default
 if command -v systemctl >/dev/null 2>&1 || [ "$(cat /proc/1/comm)" = "systemd" ]; then
@@ -58,7 +84,7 @@ fi
 
 # Check if 'install' exists in the current dir
 [ -x "./install" ] || {
-	SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
+	SCRIPT_DIR=$(dirname "$0")
 	cd "${SCRIPT_DIR}" || {
 		echo "Failed to change dir to ${SCRIPT_DIR}"
 		exit 1
@@ -67,7 +93,7 @@ fi
 
 # Installs doas and ntp to ensure security updates
 if [ "${AUTOMATED}" != 'y' ]; then
-	OGUSER="${USER}" su -c "${SCRIPT_DIR}/dev/setup" || {
+	OGUSER="${USER}" su -c "./dev/setup" || {
 		echo "Failed to setup the system"
 		exit 1
 	}
@@ -230,8 +256,12 @@ doas apt-get update -qq
 echo "Installing packages. This will take a while."
 
 # Install packages
-awk -F, -v opt="${OPTIONALS}" -v dev="${DEVPACKS}" -v games="${GAMES}" -v virt="${VIRTUALIZATION}" '
-	$1 == "core" || ($1 == "opt" && opt == "y") || ($1 == "dev" && dev == "y") || ($1 == "games" && games == "y") || ($1 == "virt" && virt == "y") { print $2 }
+awk -F, -v enabled="$(printf "core,%s,%s,%s,%s,%s,%s,%s" "${OPTIONALS}" "${DEVPACKS}" "${GAMES}" "${VIRTUALIZATION}" "${XORG}" "${WAYLAND}" "${GUI}")" '
+BEGIN {
+  n = split(enabled, groups, ",")
+  for (i = 1; i <= n; i++) group[groups[i]] = 1
+}
+group[$1] { print $2 }
 ' ./packages.csv | xargs doas apt-get install -y
 
 echo "Configuring the system."
@@ -244,18 +274,22 @@ doas apt-get update -qq & # Populate the command-not-found cache
 pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
 
 # Kill spying on firefox
-(
+if [ -z "${HEADLESS}" ]; then (
 	firefox -no-remote -headless -CreateProfile "me ${HOME}/.mozilla/firefox/me" >/dev/null 2>&1 &&
 		rm -rf "${HOME}/.mozilla/firefox/me/"* &&
 		wget -qO- https://raw.githubusercontent.com/arkenfox/user.js/master/user.js >"${HOME}/.mozilla/firefox/me/user.js"
-) & # Since dwm will call firefox with "firefox -P me" profile.ini can remain unchanged
+) & fi # Since dwm/dwl will call firefox with "firefox -P me" profile.ini can remain unchanged
 
 # Install builds on my repos
-weave dwm &
-weave st &
-weave dmenu &
-weave sxac &
-weave dwl &
+if [ -n "${XORG}" ]; then
+	weave dwm &
+	weave st &
+	weave dmenu &
+	weave sxac &
+fi
+if [ -n "${WAYLAND}" ]; then
+	weave dwl &
+fi
 
 # Setup Nerdfonts
 {
@@ -288,9 +322,10 @@ EOF
 doas cp pics/end.jpg /boot/grub/
 doas update-grub
 
-# Enable touchpad tapping
-doas mkdir -p /etc/X11/xorg.conf.d
-doas tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<'EOF'
+# Enable touchpad tapping on Xorg
+if [ -n "${XORG}" ]; then
+	doas mkdir -p /etc/X11/xorg.conf.d
+	doas tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<'EOF'
 Section "InputClass"
 Identifier "libinput touchpad catchall"
 MatchIsTouchpad "on"
@@ -299,6 +334,7 @@ Driver "libinput"
 Option "Tapping" "on"
 EndSection
 EOF
+fi
 
 # Enable periodic trim
 doas tee /etc/cron.weekly/fstrim >/dev/null <<'EOF'
@@ -430,5 +466,3 @@ fi
 doas setcap cap_net_raw+p /bin/ping # Allow non root users to ping
 
 wait # Wait for all background processes to finish
-
-rm -rf dwm st dmenu # Remove git repos
