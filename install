@@ -93,7 +93,11 @@ fi
 
 # Installs doas and ntp to ensure security updates
 if [ "${AUTOMATED}" != 'y' ]; then
-	OGUSER="${USER}" su -c "./dev/setup" || {
+	if command -v sudo >/dev/null 2>&1; then
+		sudo OGUSER="${USER}" su -c "./dev/setup"
+	else
+		OGUSER="${USER}" su -c "./dev/setup"
+	fi || {
 		echo "Failed to setup the system"
 		exit 1
 	}
