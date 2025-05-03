@@ -315,7 +315,7 @@ fi
 
 # Config grub
 if [ -d /boot/grub ]; then
-doas tee /etc/default/grub >/dev/null <<EOF
+	doas tee /etc/default/grub >/dev/null <<EOF
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=0
 GRUB_DISTRIBUTOR=Debian
@@ -324,8 +324,8 @@ GRUB_CMDLINE_LINUX=""
 GRUB_DISABLE_OS_PROBER=true
 GRUB_BACKGROUND=/boot/grub/end.jpg
 EOF
-doas cp pics/end.jpg /boot/grub/
-doas update-grub
+	doas cp pics/end.jpg /boot/grub/
+	doas update-grub
 fi
 
 # Enable touchpad tapping on Xorg
