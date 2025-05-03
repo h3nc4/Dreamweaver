@@ -314,6 +314,7 @@ fi
 } &
 
 # Config grub
+if [ -d /boot/grub ]; then
 doas tee /etc/default/grub >/dev/null <<EOF
 GRUB_DEFAULT=0
 GRUB_TIMEOUT=0
@@ -325,6 +326,7 @@ GRUB_BACKGROUND=/boot/grub/end.jpg
 EOF
 doas cp pics/end.jpg /boot/grub/
 doas update-grub
+fi
 
 # Enable touchpad tapping on Xorg
 if [ -n "${XORG}" ]; then
@@ -466,7 +468,5 @@ EOF
 else
 	doas sed -i "s|38400 \(tty[1-6]\)|--autologin ${USER} 38400 \1|" /etc/inittab # Sysvinit
 fi
-
-doas setcap cap_net_raw+p /bin/ping # Allow non root users to ping
 
 wait # Wait for all background processes to finish
