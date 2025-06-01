@@ -39,12 +39,12 @@ jobs:
       - name: Build ISO
         run: |
           ./dev/cook_image
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-12.10.0.iso.asc debian-dreamweaver-12.10.0.iso
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-*.iso.asc debian-dreamweaver-*.iso
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Release
         run: |
           git config --global safe.directory '*'
-          gh release create ${{ github.ref_name }} dreamweaver.tar.gz.asc dreamweaver.tar.gz debian-dreamweaver-12.10.0.iso.asc debian-dreamweaver-12.10.0.iso
+          gh release create ${{ github.ref_name }} dreamweaver.tar.gz.asc dreamweaver.tar.gz debian-dreamweaver-*.iso.asc debian-dreamweaver-*.iso
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

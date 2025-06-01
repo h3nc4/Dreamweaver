@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-DEBIAN_VERSION='12.10.0'
+DEBIAN_VERSION='12.11.0'
 if [ -z "${CI}" ]; then
 	PROGRESS_WGET_OPTS='--show-progress --progress=bar'
 fi
@@ -30,7 +30,10 @@ rm -f "./debian-dreamweaver-${DEBIAN_VERSION}.iso"
 
 if [ ! -f "./debian-${DEBIAN_VERSION}-amd64-netinst.iso" ]; then
 	# shellcheck disable=SC2086
-	wget -q ${PROGRESS_WGET_OPTS} "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-${DEBIAN_VERSION}-amd64-netinst.iso"
+	wget -q ${PROGRESS_WGET_OPTS} "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-${DEBIAN_VERSION}-amd64-netinst.iso" || {
+		echo "A newer CD version is released. Bump \$DEBIAN_VERSION to update it." >&2
+		exit 8
+	}
 fi
 
 TMPDIR="$(mktemp -d)"
