@@ -37,6 +37,7 @@ core,libreadline-dev,Compilation
 core,git,Version control system
 core,patch,code patching tool
 core,nano,Simple text editor by GNU
+core,neovim,Extensible text editor
 core,zip,Zip file creation
 core,unzip,Zip file extraction
 core,xz-utils,XZ compression
@@ -78,6 +79,10 @@ wayl,libwayland-bin,Wayland support
 wayl,libwlroots10,Wayland support
 wayl,libxkbcommon0,Wayland support
 wayl,xwayland,X support on Wayland
+wayl,libtbb12,ueberzubpp runtime dependency
+wayl,libvips42,ueberzubpp runtime dependency
+wayl,libchafa0,ueberzubpp runtime dependency
+wayl,uuid-runtime,ueberzubpp runtime dependency
 opt,signal-desktop,Private messaging
 opt,brave-browser,Alternative browser
 opt,libreoffice-writer,Office suite
