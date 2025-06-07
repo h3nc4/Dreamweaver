@@ -91,6 +91,8 @@ fi
 	}
 }
 
+export DEBIAN_FRONTEND=noninteractive
+
 # Installs doas and ntp to ensure security updates
 if [ "${AUTOMATED}" != 'y' ]; then
 	if command -v sudo >/dev/null 2>&1; then
@@ -104,8 +106,6 @@ if [ "${AUTOMATED}" != 'y' ]; then
 fi
 
 echo "Setting up the system."
-
-export DEBIAN_FRONTEND=noninteractive
 
 # Change debian to testing and add unstable to the sources
 doas rm -f /etc/apt/sources.list
@@ -296,7 +296,7 @@ if [ -n "${WAYLAND}" ]; then
 fi
 
 # Setup Nerdfonts
-if [ -z "${HEADLESS}" ]; then {
+{
 	mkdir -p "${HOME}/.cache" "${HOME}/.local/bin" "${HOME}/.local/share/fonts"
 	{
 		wget -qO- "https://github.com/ryanoasis/nerd-fonts/releases/latest/download/Hack.tar.xz" |
@@ -307,11 +307,11 @@ if [ -z "${HEADLESS}" ]; then {
 			tar -xJ -C "${HOME}/.local/share/fonts"
 	} &
 	wait
-	mkfontscale "${HOME}/.local/share/fonts" &&
-		mkfontdir "${HOME}/.local/share/fonts" &&
+	mkfontscale "${HOME}/.local/share/fonts" || :
+	mkfontdir "${HOME}/.local/share/fonts" &&
 		fc-cache -fv >/dev/null &&
 		echo "Hack Nerd Font has been installed"
-} & fi
+} &
 
 # Config grub
 if [ -d /boot/grub ]; then
@@ -370,7 +370,7 @@ if [ -n "\$PROFILED" ]; then
 fi
 PROFILED=1
 export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-if [ -d /etc/profile.d ]; then
+if [ -d /etc/profile.d ] && [ "\$(echo /etc/profile.d/*.sh)" != '/etc/profile.d/*.sh' ]; then
 	for i in /etc/profile.d/*.sh; do . "\$i"; done; unset i
 fi
 if [ "\$BASH" ] && [[ \$- == *i* ]]; then
@@ -470,3 +470,5 @@ else
 fi
 
 wait # Wait for all background processes to finish
+
+echo "Installation successful"

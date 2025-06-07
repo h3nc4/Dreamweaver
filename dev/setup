@@ -1,11 +1,19 @@
 #!/bin/sh
+set -e
 
 apt-get update -qq
 
-apt-get install -y ntp ntpdate opendoas || exit 1
+apt-get install -y ntp ntpdate locales opendoas || exit 1
 
 # sync time
 /usr/sbin/ntpdate -s time.nist.gov
+
+# Gen locales if not set
+if [ -z "$LC_ALL" ]; then
+	sed -i '/^# *en_US.UTF-8 UTF-8/s/^# *//' /etc/locale.gen
+	locale-gen en_US.UTF-8
+	update-locale LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+fi
 
 # If OGUSER is not set, set it to the user 1000
 OGUSER=${OGUSER:-$(id -un 1000)}
