@@ -39,7 +39,9 @@ jobs:
       - name: Build ISO
         run: |
           ./dev/cook_image
-          gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o debian-dreamweaver-*.iso.asc debian-dreamweaver-*.iso
+          for input_iso in debian-dreamweaver-*.iso; do
+            gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --detach-sign --armor -o "${input_iso}".asc "${input_iso}"
+          done
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Release
