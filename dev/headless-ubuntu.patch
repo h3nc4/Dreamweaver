@@ -1,0 +1,76 @@
+diff --git dev/setup dev/setup
+index 0b9e264..9cc0ab5 100755
+--- dev/setup
++++ dev/setup
+@@ -3,10 +3,7 @@ set -e
+ 
+ apt-get update -qq
+ 
+-apt-get install -y ntp ntpdate locales opendoas || exit 1
+-
+-# sync time
+-/usr/sbin/ntpdate -s time.nist.gov
++apt-get install -y locales opendoas || exit 1
+ 
+ # Gen locales if not set
+ if [ -z "$LC_ALL" ]; then
+diff --git install install
+index c830e21..409c612 100755
+--- install
++++ install
+@@ -107,43 +107,6 @@ fi
+ 
+ echo "Setting up the system."
+ 
+-# Change debian to testing and add unstable to the sources
+-doas rm -f /etc/apt/sources.list
+-doas tee /etc/apt/sources.list.d/debian.sources >/dev/null <<EOF
+-Types: deb deb-src
+-URIs: http://deb.debian.org/debian/
+-Suites: stable
+-Components: main non-free-firmware 
+-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+-
+-Types: deb deb-src
+-URIs: http://deb.debian.org/debian/
+-Suites: testing
+-Components: main non-free-firmware 
+-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+-
+-Types: deb deb-src
+-URIs: http://deb.debian.org/debian/
+-Suites: unstable
+-Components: main non-free-firmware 
+-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+-EOF
+-
+-# Lower the priority of unstable packages and keep firmware from stable
+-doas tee /etc/apt/preferences.d/unstable.pref >/dev/null <<'EOF'
+-Package: *
+-Pin: release a=testing
+-Pin-Priority: 990
+-
+-Package: *
+-Pin: release a=unstable
+-Pin-Priority: 10
+-
+-Package: firmware-misc-nonfree
+-Pin: release a=stable
+-Pin-Priority: 1001
+-EOF
+-
+ # Do not install recommended packages automatically
+ doas tee /etc/apt/apt.conf.d/99norecommends >/dev/null <<EOF
+ APT::Install-Recommends "0";
+diff --git packages.csv packages.csv
+index 508a0e5..5d16b58 100644
+--- packages.csv
++++ packages.csv
+@@ -28,7 +28,6 @@ core,pipewire-pulse,Audio server compatible with PulseAudio
+ core,pipewire-audio,Handle many devices
+ core,wireplumber,Session manager for PipeWire
+ core,pulsemixer,PulseAudio mixer
+-core,newsboat,RSS reader
+ core,command-not-found,Suggests packages for missing commands
+ core,bash-completion,Tab completion
+ core,gcc,Compilation
