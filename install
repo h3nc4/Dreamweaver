@@ -66,8 +66,10 @@ fi
 if command -v systemctl >/dev/null 2>&1 || [ "$(cat /proc/1/comm)" = "systemd" ]; then
 	ONSYSTEMD=y
 	MIRROR=${MIRROR:-"http://deb.debian.org/debian/"}
+	DEB_KEYRING=${DEB_KEYRING:-"/usr/share/keyrings/debian-archive-keyring.gpg"}
 else
-	MIRROR=${MIRROR:-"http://deb.devuan.org/merged/"}
+	MIRROR=${MIRROR:-"http://br.deb.devuan.org/merged"}
+	DEB_KEYRING=${DEB_KEYRING:-"/usr/share/keyrings/devuan-archive-keyring.gpg"}
 fi
 
 # Test internet connection
@@ -110,26 +112,26 @@ echo "Setting up the system."
 # Change debian to testing and add unstable to the sources
 doas rm -f /etc/apt/sources.list
 doas tee /etc/apt/sources.list.d/debian.sources >/dev/null <<EOF
-Types: deb deb-src
-URIs: http://deb.debian.org/debian/
+Types: deb
+URIs: ${MIRROR}
 Suites: stable
 Components: main non-free-firmware 
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Signed-By: ${DEB_KEYRING}
 
-Types: deb deb-src
-URIs: http://deb.debian.org/debian/
+Types: deb
+URIs: ${MIRROR}
 Suites: testing
 Components: main non-free-firmware 
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Signed-By: ${DEB_KEYRING}
 
-Types: deb deb-src
-URIs: http://deb.debian.org/debian/
+Types: deb
+URIs: ${MIRROR}
 Suites: unstable
 Components: main non-free-firmware 
-Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+Signed-By: ${DEB_KEYRING}
 EOF
 
-# Lower the priority of unstable packages and keep firmware from stable
+# Lower the priority of unstable and stable packages
 doas tee /etc/apt/preferences.d/unstable.pref >/dev/null <<'EOF'
 Package: *
 Pin: release a=testing
@@ -139,9 +141,9 @@ Package: *
 Pin: release a=unstable
 Pin-Priority: 10
 
-Package: firmware-misc-nonfree
+Package: *
 Pin: release a=stable
-Pin-Priority: 1001
+Pin-Priority: 1
 EOF
 
 # Do not install recommended packages automatically
@@ -229,24 +231,6 @@ URIs: https://download.vscodium.com/debs
 Suites: vscodium
 Components: main
 Signed-By: /etc/apt/keyrings/codium.gpg
-EOF
-	# Docker setup
-	wget -qO- https://download.docker.com/linux/debian/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/docker.gpg >/dev/null &&
-		doas tee /etc/apt/sources.list.d/docker.sources >/dev/null <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/debian
-Suites: bookworm
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.gpg
-EOF
-	# Terraform setup
-	wget -qO- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | doas tee /etc/apt/keyrings/terraform.gpg >/dev/null &&
-		doas tee /etc/apt/sources.list.d/terraform.sources >/dev/null <<EOF
-Types: deb
-URIs: https://apt.releases.hashicorp.com
-Suites: bookworm
-Components: main
-Signed-By: /etc/apt/keyrings/terraform.gpg
 EOF
 fi
 
@@ -363,21 +347,59 @@ doas chmod 644 /var/log/fstrim.log
 
 # Config bash
 doas rm -f /etc/bash.bashrc "${HOME}/.bashrc" "${HOME}/.bash_profile" "${HOME}/.bash_login" "${HOME}/.bash_logout" "${HOME}/.profile" >/dev/null 2>&1
-doas tee /etc/profile >/dev/null <<EOF
+doas tee /etc/profile >/dev/null <<'EOF'
 #!/bin/sh
-if [ -n "\$PROFILED" ]; then
-	return
+
+# Avoid running twice
+if [ -n "$PROFILED" ]; then
+    return
 fi
 PROFILED=1
-export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games"
-if [ -d /etc/profile.d ] && [ "\$(echo /etc/profile.d/*.sh)" != '/etc/profile.d/*.sh' ]; then
-	for i in /etc/profile.d/*.sh; do . "\$i"; done; unset i
+
+for d in /sbin /usr/sbin /usr/local/sbin /bin /usr/bin /usr/local/bin; do
+	case ":${PATH}:" in
+	*":${d}:"*) ;;                     # skip if already in PATH
+	*) PATH="${d}${PATH:+:${PATH}}" ;; # prepend if not
+	esac
+done
+export PATH
+
+# PS1 is only set for interactive shells
+if [ "${PS1-}" ]; then
+    if [ "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
+        # bash.bashrc sets the default PS1
+        if [ -f /etc/bash.bashrc ]; then
+            . /etc/bash.bashrc
+        fi
+    else
+        # POSIX shells set their own prompt
+        if [ "$(id -u)" -eq 0 ]; then
+            PS1='# '
+        else
+            PS1='$ '
+        fi
+    fi
 fi
-if [ "\$BASH" ] && [[ \$- == *i* ]]; then
-	function command_not_found_handle (){ echo "bash: \$1: command not found"; return 127; }
-	if [ -f "\${HOME}/.config/bash/bashrc" ]; then
-		. "\${HOME}/.config/bash/bashrc"
-	fi
+
+if [ -d /etc/profile.d ]; then
+    for i in $(run-parts --list --regex '^[a-zA-Z0-9_][a-zA-Z0-9._-]*\.sh$' /etc/profile.d); do
+        [ -r "$i" ] && . "$i"
+    done
+    unset i
+fi
+
+if [ -n "$BASH" ]; then
+    case $- in
+        *i*)  # interactive Bash only
+            command_not_found_handle() {
+                echo "bash: $1: command not found"
+                return 127
+            }
+            if [ -f "${HOME}/.config/bash/bashrc" ]; then
+                . "${HOME}/.config/bash/bashrc"
+            fi
+            ;;
+    esac
 fi
 EOF
 doas ln -sf /etc/profile /etc/bash.bashrc
@@ -428,6 +450,18 @@ if [ -n "${DEVPACKS}" ]; then
 		doas systemctl disable --now docker.socket
 		doas systemctl disable --now docker containerd postgresql
 	fi
+	# Create a dev user
+	doas useradd -m -s /bin/bash dev
+	doas mkdir -p /home/dev/.ssh /home/dev/.config
+	doas chown -R dev:dev /home/dev/.ssh /home/dev/.config
+	doas mv "/home/${USER}/.config" /var/shared-dotconfig
+	mkdir -p "/home/${USER}/.config"
+	doas bindfs --map=root/${USER}:@root/@${USER} /var/shared-dotconfig "/home/${USER}/.config"
+	doas bindfs --map=root/dev:@root/@dev /var/shared-dotconfig /home/dev/.config
+	doas tee -a /etc/fstab >/dev/null <<EOF
+bindfs#/var/shared-dotconfig /home/${USER}/.config fuse map=root/${USER}:@root/@${USER} 0 0
+bindfs#/var/shared-dotconfig /home/dev/.config     fuse map=root/dev:@root/@dev         0 0
+EOF
 fi
 
 if [ -n "${OPTIONALS}" ] && [ -n "${ONSYSTEMD}" ]; then
