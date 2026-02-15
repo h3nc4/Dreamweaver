@@ -41,7 +41,6 @@ core,neovim,Extensible text editor
 core,zip,Zip file creation
 core,unzip,Zip file extraction
 core,xz-utils,XZ compression
-core,pipx,Python package manager
 core,xdg-utils,xdg-open
 core,libfile-mimeinfo-perl,File type detection for xdg-open
 core,curl,Communicate with servers
@@ -115,6 +114,8 @@ dev,docker.io,Docker
 dev,docker-cli,Docker
 dev,docker-buildx,Docker
 dev,docker-compose,Docker
+dev,apparmor,AppArmor
+dev,apparmor-utils,AppArmor
 dev,sqlite3,Databases
 dev,sqlitebrowser,Databases
 dev,software-properties-common,Essential tools

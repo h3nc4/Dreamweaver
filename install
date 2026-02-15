@@ -259,8 +259,6 @@ doas usermod -aG tty,video,audio,disk,input "${USER}"
 
 doas apt-get update -qq & # Populate the command-not-found cache
 
-pipx install yt-dlp bibverse >/dev/null 2>&1 & # Install python packages locally
-
 # Kill spying on firefox
 if [ -z "${HEADLESS}" ]; then (
 	firefox -no-remote -headless -CreateProfile "me ${HOME}/.mozilla/firefox/me" >/dev/null 2>&1 &&
@@ -437,10 +435,6 @@ fi
 if [ -n "${DEVPACKS}" ]; then
 	# Docker
 	doas usermod -aG docker "${USER}"
-	# Setup initial postgres user and database for development
-	doas su - postgres -c "psql -c \"CREATE USER dev WITH SUPERUSER PASSWORD 'dev';\""
-	doas su - postgres -c "createdb dev"
-	doas su - postgres -c "psql -c \"grant all privileges on database dev to dev;\""
 	# Create data dir on vscodium
 	CODIUM_DATA_DIR="$(dirname "$(readlink -f /usr/bin/codium)")/../data"
 	doas mkdir -p "${CODIUM_DATA_DIR}"
