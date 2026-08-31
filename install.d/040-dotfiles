@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Configuration lives in its own repository, and carries the env later modules read.
+
+need wget 020-system-upgrade
+need gpg 020-system-upgrade
+
+KEYRING='/usr/share/keyrings/dreamweaver.gpg'
+BASE='https://github.com/h3nc4/dotfiles/releases/latest/download'
+TMP="$(mktemp -d)"
+trap 'rm -rf "${TMP}"' EXIT
+
+wget -qO "${TMP}/dotfiles.tar.gz" "${BASE}/dotfiles.tar.gz"
+wget -qO "${TMP}/dotfiles.tar.gz.asc" "${BASE}/dotfiles.tar.gz.asc"
+gpg --no-default-keyring --keyring "${KEYRING}" \
+	--verify "${TMP}/dotfiles.tar.gz.asc" "${TMP}/dotfiles.tar.gz" 2>/dev/null ||
+	die 'the dotfiles release is not signed by the Dreamweaver key'
+
+mkdir -p "${DW_HOME}/.config"
+tar --strip-components=1 -C "${DW_HOME}/.config" -xf "${TMP}/dotfiles.tar.gz"
+
+[ -r "${DW_HOME}/.config/env" ] ||
+	die 'the dotfiles release did not contain .config/env'

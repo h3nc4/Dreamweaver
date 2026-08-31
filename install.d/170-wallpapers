@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# One wallpaper, never overwritten: the user owns this directory.
+
+DEST="${DW_HOME}/media/wallpapers"
+mkdir -p "${DEST}"
+[ -f "${DEST}/landscape.jpg" ] && skip 'wallpaper already in place'
+cp "${DW_ROOT}/pics/landscape.jpg" "${DEST}/landscape.jpg"

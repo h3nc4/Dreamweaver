@@ -1,0 +1,23 @@
+#!/bin/sh
+# shellcheck disable=SC2154 # XDG_*, WGETRC and GNUPGHOME come from the dotfiles' env
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Load the config once, so plugin state exists before first use.
+
+command -v tmux >/dev/null 2>&1 || skip 'tmux is not installed'
+[ -r "${DW_HOME}/.config/env" ] || skip 'dotfiles not installed yet'
+# shellcheck disable=SC1091
+. "${DW_HOME}/.config/env"
+[ -r "${XDG_CONFIG_HOME}/tmux.conf" ] || skip 'no tmux.conf in the dotfiles'
+
+tmux new-session -d -s dw_setup
+tmux source-file "${XDG_CONFIG_HOME}/tmux.conf" || :
+tmux kill-session -t dw_setup

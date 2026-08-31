@@ -1,6 +1,6 @@
 # Dreamweaver
 
-**Dreamweaver** is a Debian GNU/Linux–based distribution focused on minimalism and free software.
+**Dreamweaver** is a Debian and Devuan based distribution focused on minimalism and free software.
 
 ![screenshot.png](./pics/screenshot.png)
 
@@ -8,17 +8,19 @@
 
 ### ISO
 
-Download the latest release ISO image:
+Installer images are built from the current Debian and Devuan netinst releases. Both boot on BIOS and UEFI machines, and both keep the upstream signed Secure Boot chain.
 
-- [Download ISO](https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso)
+- [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-13.6.0-amd64.iso)
+- [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-6.1.1-amd64.iso)
 
-To verify the integrity of the downloaded image, run the following:
+To verify the integrity of a downloaded image, run the following:
 
 ```console
-$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso
-$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/debian-dreamweaver-12.9.0.iso.asc
+$ iso=dreamweaver-debian-13.6.0-amd64.iso
+$ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}"
+$ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}.asc"
 $ wget -qO- https://h3nc4.com/dreamweaver.asc | gpg --import
-$ gpg --verify debian-dreamweaver-12.9.0.iso.asc debian-dreamweaver-12.9.0.iso
+$ gpg --verify "${iso}.asc" "${iso}"
 ```
 
 If you see an output similar to the following, the image is verified:
@@ -52,7 +54,7 @@ $ man dwm
 
 ### dwl on Wayland
 
-To autostart wayland sessions with dwl, create a file named `.wayland` under your profile's `.config` folder
+To autostart wayland sessions with dwl, create `.wayland` under your profile's `.config` folder
 
 ```console
 $ touch ~/.config/.wayland
@@ -60,15 +62,47 @@ $ touch ~/.config/.wayland
 
 ## Flags
 
-The installation script accepts the following optional flags:
+The installer asks which profile to install. An image built from this repository shows two questions during the installation, one for the graphical session and one for the optional software sets, in whichever installer you booted — text or graphical.
 
-- **`-o`**: Include optional packages in the installation.
-- **`-d`**: Install development packages.
-- **`-g`**: Install gaming-related packages and permit proprietary software.
-- **`-v`**: Set up virtualization tools (e.g., QEMU, KVM).
-- **`-m <mirror>`**: Specify a custom Debian or Devuan mirror URL. If omitted, the default is:
+Choosing nothing installs the default: dwm on Xorg, plus the core packages.
+
+### Script flags
+
+Installing on an already running system, the same choices are flags:
+
+- **`-o`**: include extra software.
+- **`-d`**: install development software.
+- **`-g`**: install gaming software and permit proprietary packages.
+- **`-v`**: set up virtualization tools (QEMU, KVM, libvirt).
+- **`-h`**: headless, with no graphical session. Overrides `-x` and `-w`.
+- **`-x`**: install the Xorg session. The default when neither `-w` nor `-h` is given.
+- **`-w`**: install the Wayland session.
+- **`-m <mirror>`**: use a custom Debian or Devuan mirror. If omitted, the default is:
   - `http://deb.debian.org/debian/` or
   - `http://deb.devuan.org/merged/`
+
+The installation is a set of numbered steps under `install.d/`, and any of them can be run on its own. Running `./install` again is safe: each step is written so that a second run changes nothing a first run already did.
+
+```console
+$ ./install --list                  # the steps, in order
+$ ./install --dry-run -d            # what -d would run, without running it
+$ ./install --only 070-packages     # just the packages
+$ ./install --from 120-grub         # resume from a step
+```
+
+The package set lives in `packages/`, one file per category, with a per-distribution file alongside it where the two bases differ.
+
+## Building
+
+The dev container holds the toolchain, so Docker is the only thing the host needs.
+
+```console
+$ ./scripts/build-dev-image.sh      # once
+$ ./scripts/build-iso.sh            # both images
+$ ./scripts/build-iso.sh -d devuan  # just one
+```
+
+The images are written to the repository root. Open the repository in a dev container instead to get `xorriso`, QEMU, OVMF and the linters, then see [AGENTS.md](AGENTS.md) for how the repack works and how it is tested.
 
 ## License
 

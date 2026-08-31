@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# The base up to the pinned suites, plus the fetch and verify tools later modules need.
+
+# --force-overwrite is not optional: tracking testing makes this a partial cross-release
+# upgrade, which moves files between packages. forky moved /usr/bin/logger from bsdutils
+# to util-linux, and that one file aborted the whole install.
+apt_upgrade() {
+	DEBIAN_FRONTEND=noninteractive as_root apt-get full-upgrade -y \
+		--autoremove --purge \
+		-o DPkg::Options::=--force-overwrite
+}
+
+if ! apt_upgrade; then
+	# Recover before retrying: a half-configured dpkg is worse than the failure itself.
+	warn 'the upgrade failed; trying to recover and repeat it'
+	as_root dpkg --configure -a || :
+	DEBIAN_FRONTEND=noninteractive as_root apt-get -f install -y \
+		-o DPkg::Options::=--force-overwrite || :
+	apt_upgrade || die 'full-upgrade failed even after recovery'
+fi
+
+apt_install ca-certificates gnupg wget apt-transport-https lsb-release ||
+	die 'could not install the fetch and verify tools'

@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Nerd Fonts, fetched in parallel because both are large downloads.
+
+FONTS="${DW_HOME}/.local/share/fonts"
+
+if [ -d "${FONTS}" ] && ls "${FONTS}"/Hack*.ttf >/dev/null 2>&1 &&
+	ls "${FONTS}"/Terminus*.ttf >/dev/null 2>&1; then
+	skip 'nerd fonts already installed'
+fi
+
+mkdir -p "${FONTS}"
+BASE='https://github.com/ryanoasis/nerd-fonts/releases/latest/download'
+for _f in Hack Terminus; do
+	{ wget -qO- "${BASE}/${_f}.tar.xz" | tar -xJ -C "${FONTS}"; } &
+done
+wait
+
+mkfontscale "${FONTS}" 2>/dev/null || :
+mkfontdir "${FONTS}" 2>/dev/null || :
+fc-cache -f >/dev/null 2>&1 || :

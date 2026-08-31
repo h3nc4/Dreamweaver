@@ -1,0 +1,78 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# One /etc/profile for every shell, with /etc/bash.bashrc symlinked onto it. Debian's
+# per-user files are removed, leaving a single definition.
+
+as_root rm -f /etc/bash.bashrc
+rm -f "${DW_HOME}/.bashrc" "${DW_HOME}/.bash_profile" "${DW_HOME}/.bash_login" \
+	"${DW_HOME}/.bash_logout" "${DW_HOME}/.profile"
+
+as_root tee /etc/profile >/dev/null <<'PROFILE'
+#!/bin/sh
+
+# Avoid running twice
+if [ -n "$PROFILED" ]; then
+	return
+fi
+PROFILED=1
+
+for d in /sbin /usr/sbin /usr/local/sbin /bin /usr/bin /usr/local/bin; do
+	case ":${PATH}:" in
+	*":${d}:"*) ;;                     # skip if already in PATH
+	*) PATH="${d}${PATH:+:${PATH}}" ;; # prepend if not
+	esac
+done
+export PATH
+
+# PS1 is only set for interactive shells
+if [ "${PS1-}" ]; then
+	if [ "${BASH-}" ] && [ "$BASH" != "/bin/sh" ]; then
+		# bash.bashrc sets the default PS1
+		if [ -f /etc/bash.bashrc ]; then
+			. /etc/bash.bashrc
+		fi
+	else
+		# POSIX shells set their own prompt
+		if [ "$(id -u)" -eq 0 ]; then
+			PS1='# '
+		else
+			PS1='$ '
+		fi
+	fi
+fi
+
+if [ -d /etc/profile.d ]; then
+	for i in $(run-parts --list --regex '^[a-zA-Z0-9_][a-zA-Z0-9._-]*\.sh$' /etc/profile.d); do
+		[ -r "$i" ] && . "$i"
+	done
+	unset i
+fi
+
+if [ -n "$BASH" ]; then
+	case $- in
+	*i*) # interactive Bash only
+		command_not_found_handle() {
+			echo "bash: $1: command not found"
+			return 127
+		}
+		if [ -f "${HOME}/.config/bash/bashrc" ]; then
+			. "${HOME}/.config/bash/bashrc"
+		fi
+		;;
+	esac
+fi
+PROFILE
+
+as_root ln -sfn /etc/profile /etc/bash.bashrc
+# shellcheck disable=SC2016 # written literally into bash.bash_logout, not expanded here
+printf '%s\n' '[ "$SHLVL" -eq 1 ] && [ -x /usr/bin/clear_console ] && /usr/bin/clear_console -q' |
+	as_root tee /etc/bash.bash_logout >/dev/null

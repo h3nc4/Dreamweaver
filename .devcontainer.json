@@ -1,0 +1,82 @@
+// Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+//
+// This file is part of Dreamweaver.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+{
+  "name": "Dreamweaver",
+  "image": "h3nc4/dreamweaver-dev:0",
+  "runArgs": [
+    "--name=dreamweaver-devcontainer",
+    "--network=host",
+    "--privileged"
+  ],
+  "remoteUser": "dreamweaver",
+  "workspaceFolder": "/workspaces/Dreamweaver",
+  "overrideCommand": false,
+  "mounts": [
+    "source=${env:HOME},target=/home/dreamweaver,type=bind",
+    "source=/etc/localtime,target=/etc/localtime,type=bind,readonly",
+    "source=/etc/profile,target=/etc/profile,type=bind,readonly",
+    "source=/etc/bash.bashrc,target=/etc/bash.bashrc,type=bind,readonly",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind",
+    // Base netinst images survive a rebuild, so a repack re-downloads nothing.
+    "source=dreamweaver-base-images,target=/var/cache/dreamweaver,type=volume"
+  ],
+  "containerEnv": {
+    "DEVCONTAINER": "1",
+    "TERM": "${env:TERM}",
+    "TMUX": "${env:TMUX}",
+    "DREAMWEAVER_HOST_ROOT": "${localWorkspaceFolder}"
+  },
+  "userEnvProbe": "interactiveShell",
+  // /dev/kvm keeps the boot tests to minutes rather than tens of them.
+  "postStartCommand": "./scripts/devcontainer-poststart.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "timonwong.shellcheck",
+        "foxundermoon.shell-format",
+        "DavidAnson.vscode-markdownlint",
+        "ms-vscode-remote.vscode-remote-extensionpack",
+        "ms-azuretools.vscode-docker",
+        "donjayamanne.githistory",
+        "eamodio.gitlens",
+        "github.vscode-github-actions"
+      ],
+      "settings": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.detectIndentation": false,
+        "editor.formatOnSave": true,
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true,
+        // shfmt uses tabs here. The editor must agree, or every save fights lint.sh.
+        "[shellscript]": {
+          "editor.insertSpaces": false
+        },
+        "shellcheck.customArgs": ["-o", "all", "-s", "sh"],
+        "files.associations": {
+          "install": "shellscript",
+          "bootstrap": "shellscript",
+          "**/install.d/*": "shellscript",
+          "**/preseed/late-command": "shellscript",
+          "**/preseed/*.cfg": "properties",
+          "**/packages/*.list": "properties"
+        }
+      }
+    }
+  }
+}

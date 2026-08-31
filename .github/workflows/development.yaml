@@ -1,0 +1,118 @@
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Dreamweaver Development CI
+
+on:
+  push:
+    branches:
+      - "master"
+      - "release/*"
+  pull_request:
+    branches:
+      - "master"
+      - "release/*"
+
+jobs:
+  checks:
+    name: Validate Codebase
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0 # dev-image diffs against the base to spot image changes
+      # Authenticated pulls, which anonymous rate limits can refuse.
+      - name: Run docker/login-action
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Run h3nc4/dev-image-action
+        uses: h3nc4/dev-image-action@896daea2e2bdda063d6992243c634f156ce057ac # v1.0.0
+        with:
+          published-repo: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev
+      - name: Lint shell and prose
+        run: $DEV_RUN -c './scripts/ci.sh'
+      # Was its own workflow that only built the image. Here it runs against whichever
+      # image the suite uses, candidate included, and the signing keys are fetched at
+      # image build time, so that failure surfaces before a release.
+      - name: Check the toolchain the image promises
+        run: |
+          $DEV_RUN -c 'set -e
+            for tool in xorriso cpio gzip curl gpg shellcheck shfmt \
+                        qemu-system-x86_64 qemu-img socat websockify; do
+              command -v "${tool}" >/dev/null || { echo "missing ${tool}" >&2; exit 1; }
+            done
+            test -s "${DREAMWEAVER_KEYS}/debian.asc"
+            test -s "${DREAMWEAVER_KEYS}/devuan.asc"
+            ls /usr/share/OVMF/OVMF_CODE_4M.fd >/dev/null
+            # scripts/vm.sh serves this to the browser, so websockify alone is not enough.
+            test -s /usr/share/novnc/vnc.html'
+
+  modules:
+    name: install.d on ${{ matrix.distro }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [debian, devuan]
+    steps:
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Every module twice, in a container of the target base. Minutes against the tens a
+      # full VM install costs, which is why this gates every push and boot-test.yaml does
+      # not.
+      - name: Run the module suite
+        run: ./scripts/test-modules.sh -d "${{ matrix.distro }}"
+
+  build:
+    name: Build ${{ matrix.distro }} image
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [debian, devuan]
+    steps:
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Run docker/setup-buildx-action
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+      # Authenticated pulls, which anonymous rate limits can refuse.
+      - name: Run docker/login-action
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # No dev-image-action: build-iso.sh resolves the image itself and needs a published
+      # one, feeding iso.Dockerfile a repository and tag separately.
+      - name: Read the published dev image tag
+        id: dev_tag
+        run: echo "tag=$(cat .github/VERSION)" >>"$GITHUB_OUTPUT"
+      - name: Build image
+        run: ./scripts/build-iso.sh -d "${{ matrix.distro }}"
+      # cook-image.sh already ran this. Outside the build container it proves the artifact
+      # that left the build is the one that passed.
+      - name: Verify boot layout
+        run: |
+          docker run --rm \
+            -v "${PWD}:/iso:ro" \
+            --entrypoint /iso/scripts/verify-iso.sh \
+            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ steps.dev_tag.outputs.tag }}" \
+            "$(printf '/iso/%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"

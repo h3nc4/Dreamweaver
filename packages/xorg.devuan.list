@@ -1,0 +1,20 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Xorg packages that only Devuan gets, on top of packages/xorg.list.
+
+# Devuan has no systemd-logind, so a session needs elogind to get one. Debian must not
+# get these: systemd Conflicts elogind, and apt refuses the whole transaction.
+#
+#   E: Unable to satisfy dependencies. Reached two conflicting assignments:
+#     - systemd:amd64=261.2-1 is not selected for install because:
+#       1. elogind:amd64=255.17-1debian6 is selected for install
+#       2. systemd:amd64=261.2-1 Conflicts elogind
+#
+# That made every Debian install with a graphical session impossible, and xorg is the
+# default session. The old packages.csv had both lines in the shared xorg category, so
+# this predates the split into per-distribution files.
+libpam-elogind                  # login
+elogind                         # login

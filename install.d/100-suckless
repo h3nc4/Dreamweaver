@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# The suckless builds, from source, via the dotfiles' weave. In parallel, since they are
+# independent compiles.
+
+[ -r "${DW_HOME}/.config/profile.d/install" ] || skip 'dotfiles not installed yet'
+# shellcheck disable=SC1091
+. "${DW_HOME}/.config/env"
+# shellcheck disable=SC1091
+. "${DW_HOME}/.config/profile.d/install"
+
+command -v weave >/dev/null 2>&1 || skip 'the dotfiles do not provide weave'
+
+set --
+enabled "${DW_XORG}" && set -- "$@" dwm st dmenu sxac
+enabled "${DW_WAYLAND}" && set -- "$@" dwl
+[ "$#" -gt 0 ] || skip 'no graphical session selected'
+
+for _p in "$@"; do
+	weave "${_p}" &
+done
+wait

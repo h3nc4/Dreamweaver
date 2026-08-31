@@ -1,0 +1,21 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Silence the terminal bell and the login banners.
+
+if [ -f /etc/inputrc ]; then
+	as_root sed -i 's/^# *set bell-style none/set bell-style none/' /etc/inputrc
+fi
+
+as_root mkdir -p /etc/modprobe.d
+append_once /etc/modprobe.d/blacklist.conf 'blacklist pcspkr'
+
+as_root rm -f /etc/motd /etc/issue /etc/issue.net

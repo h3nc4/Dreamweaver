@@ -1,0 +1,126 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Asks which Dreamweaver profile to install, in the installer environment, not the target.
+#
+#   profile-select              ask, from preseed/early_command
+#   profile-select --export F   write the answers to F as shell assignments, from
+#                               preseed/late_command
+#
+# A debconf client, not a udeb: everything a udeb's postinst would call is already in the
+# initrd, so packaging would add only registration as a numbered step, later, unchanged.
+#
+# The questions render in whichever frontend runs, the graphical one included.
+#
+# Preseeding either template sets debconf's seen flag, so db_input displays nothing, which
+# keeps the unattended boot tests silent.
+
+set -e
+
+OWNER='dreamweaver'
+TEMPLATES='/dreamweaver.templates'
+
+# early_command runs before partitioning, and losing an install over a profile question
+# is a bad trade, so every failure path leaves the defaults and exits 0.
+fail_soft() {
+	echo "profile-select: $1; continuing with defaults" >&2
+	exit 0
+}
+
+# A child of the installer inherits the frontend. The re-exec covers being run from
+# somewhere that has not connected to it.
+if [ -z "${DEBIAN_HAS_FRONTEND}" ]; then
+	command -v debconf >/dev/null 2>&1 || fail_soft 'no debconf frontend available'
+	exec debconf -o "${OWNER}" "$0" "$@"
+fi
+
+# shellcheck disable=SC1091 # only exists inside the installer
+. /usr/share/debconf/confmodule
+
+################################################################################
+
+# db_get sets RET in the calling shell, so it cannot be wrapped in a substitution.
+read_answer() {
+	RET=''
+	db_get "$1" 2>/dev/null || RET=''
+}
+
+flags_from_answers() {
+	_session="$1"
+	_extras="$2"
+
+	case "${_session}" in
+	wayland) printf ' -w' ;;
+	headless) printf ' -h' ;;
+	*) printf ' -x' ;;
+	esac
+
+	# A multiselect answer comes back comma separated, with a space after each comma.
+	_old_ifs="${IFS}"
+	IFS=','
+	for _e in ${_extras}; do
+		IFS="${_old_ifs}"
+		case "${_e# }" in
+		extra) printf ' -o' ;;
+		development) printf ' -d' ;;
+		gaming) printf ' -g' ;;
+		virtualization) printf ' -v' ;;
+		*) ;;
+		esac
+		IFS=','
+	done
+	IFS="${_old_ifs}"
+}
+
+case "$1" in
+--export)
+	OUT="$2"
+	[ -n "${OUT}" ] || fail_soft '--export needs a path'
+
+	read_answer "${OWNER}/session"
+	session="${RET:-xorg}"
+	read_answer "${OWNER}/extras"
+	extras="${RET}"
+
+	# Flags are the interface, since install already parses them. Environment variables
+	# would be a second set to keep in step.
+	printf "DW_INSTALL_FLAGS='%s'\n" "$(flags_from_answers "${session}" "${extras}")" \
+		>"${OUT}" || fail_soft "could not write ${OUT}"
+	;;
+'')
+	[ -r "${TEMPLATES}" ] || fail_soft "no ${TEMPLATES} in the initrd"
+	debconf-loadtemplate "${OWNER}" "${TEMPLATES}" ||
+		fail_soft 'could not load the templates'
+
+	db_settitle "${OWNER}/title" 2>/dev/null || :
+	db_capb backup 2>/dev/null || :
+
+	db_input high "${OWNER}/session" || :
+	db_input high "${OWNER}/extras" || :
+
+	# 30 means Back, and there is no earlier step, so the defaults stand.
+	#
+	# shellcheck disable=SC2119 # db_go takes no arguments. shellcheck reads the real
+	# confmodule when one is installed and assumes every db_* wrapper forwards "$@"
+	db_go || :
+	;;
+*)
+	fail_soft "unknown argument '$1'"
+	;;
+esac

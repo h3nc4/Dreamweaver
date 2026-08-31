@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Bluetooth ships with the optional set, but not at every boot.
+
+enabled "${DW_OPT}" || skip 'extra software not selected'
+[ -n "${DW_SYSTEMD}" ] || skip 'sysvinit; nothing to disable'
+
+as_root systemctl disable --now bluetooth 2>/dev/null || :

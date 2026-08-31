@@ -1,0 +1,28 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Wayland session. Selected by install -w.
+
+foot                            # Minimalistic Wayland terminal emulator
+swaybg                          # Wallpaper util for Wayland
+wmenu                           # dmenu on Wayland
+slurp                           # Region selector for Wayland
+grim                            # Screenshooter for Wayland
+libxcb1                         # Wayland support
+libwlroots-0.18                 # Wayland support
+libinput-bin                    # Wayland support
+libwayland-bin                  # Wayland support
+libxkbcommon0                   # Wayland support
+xwayland                        # X support on Wayland
+libtbb12                        # ueberzubpp runtime dependency
+libvips42t64                    # ueberzubpp runtime dependency
+libchafa0t64                    # ueberzubpp runtime dependency
+uuid-runtime                    # ueberzubpp runtime dependency
+
+# Library names carry their SONAME, so they go stale on their own. libwlroots10 never
+# existed here, and libvips42 and libchafa0 were renamed with a t64 suffix by Debian's
+# 64-bit time_t transition. libwlroots-0.18 above is a guess that will age the same way:
+# testing already carries libwlroots-0.20, and building dwl from source needs a matching
+# libwlroots-*-dev that packages/dev.list does not have.

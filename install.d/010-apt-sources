@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# stable, testing and unstable, testing preferred. Without the pins apt would pull the
+# whole system to unstable, so they matter as much as the sources.
+
+as_root rm -f /etc/apt/sources.list
+
+as_root tee /etc/apt/sources.list.d/dreamweaver.sources >/dev/null <<SOURCES
+Types: deb
+URIs: ${DW_MIRROR}
+Suites: stable
+Components: main non-free-firmware
+Signed-By: ${DW_KEYRING}
+
+Types: deb
+URIs: ${DW_MIRROR}
+Suites: testing
+Components: main non-free-firmware
+Signed-By: ${DW_KEYRING}
+
+Types: deb
+URIs: ${DW_MIRROR}
+Suites: unstable
+Components: main non-free-firmware
+Signed-By: ${DW_KEYRING}
+SOURCES
+
+# Left from the old filename.
+as_root rm -f /etc/apt/sources.list.d/debian.sources
+
+as_root tee /etc/apt/preferences.d/dreamweaver.pref >/dev/null <<'PREFS'
+Package: *
+Pin: release a=testing
+Pin-Priority: 990
+
+Package: *
+Pin: release a=unstable
+Pin-Priority: 10
+
+Package: *
+Pin: release a=stable
+Pin-Priority: 1
+PREFS
+as_root rm -f /etc/apt/preferences.d/unstable.pref
+
+as_root tee /etc/apt/apt.conf.d/99norecommends >/dev/null <<'CONF'
+APT::Install-Recommends "0";
+APT::Install-Suggests "0";
+CONF
+
+# Games needs contrib and non-free, and re-running this resets them, so it is applied here.
+if enabled "${DW_GAMES}"; then
+	as_root sed -i 's/^Components: main non-free-firmware$/Components: main contrib non-free non-free-firmware/' \
+		/etc/apt/sources.list.d/dreamweaver.sources
+fi
+
+as_root apt-get update -qq || die 'apt-get update failed'

@@ -1,0 +1,12 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Virtualization. Selected by install -v.
+
+virt-manager                    # Frontend
+qemu-system-x86                 # QEMU for x86 and x86_64
+qemu-utils                      # QEMU utilities
+libvirt-daemon-system           # Libvirt daemon
+ovmf                            # UEFI firmware

@@ -1,0 +1,35 @@
+#!/bin/sh
+# shellcheck disable=SC2154 # XDG_*, WGETRC and GNUPGHOME come from the dotfiles' env
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# XDG directories, plus the files that stop tools scattering state through $HOME.
+
+[ -r "${DW_HOME}/.config/env" ] || skip 'dotfiles not installed yet'
+# shellcheck disable=SC1091
+. "${DW_HOME}/.config/env"
+
+mkdir -p "${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
+as_root chown -R "${DW_USER}:${DW_USER}" \
+	"${XDG_CONFIG_HOME}" "${XDG_DATA_HOME}" "${XDG_CACHE_HOME}"
+
+mkdir -p "${DW_HOME}/.local"
+ln -sfn '../.config/bin' "${DW_HOME}/.local/bin"
+
+mkdir -p "$(dirname "${WGETRC}")" "${DW_HOME}/.cache"
+append_once "${WGETRC}" 'hsts-file = ~/.cache/wget-hsts'
+touch "${DW_HOME}/.cache/wget-hsts"
+rm -f "${DW_HOME}/.wget-hsts"
+
+mkdir -p "${GNUPGHOME}"
+as_root chown -R "${DW_USER}:${DW_USER}" "${GNUPGHOME}"
+find "${GNUPGHOME}" -type d -exec chmod 700 {} +
+find "${GNUPGHOME}" -type f -exec chmod 600 {} +
+gpg --list-keys >/dev/null 2>&1 || :

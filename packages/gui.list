@@ -1,0 +1,11 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Graphical applications. Skipped by install -h.
+
+nsxiv                           # Image viewer
+firefox                         # Browser
+keepassxc                       # Password manager
+gnome-themes-extra              # gtk theme

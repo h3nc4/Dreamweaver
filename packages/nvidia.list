@@ -1,0 +1,16 @@
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# The proprietary NVIDIA driver, from NVIDIA's own repository. Selected by
+# DW_NVIDIA=1 install.d/250-nvidia.
+#
+# Three lines, because that is all the machine this was derived from had installed by
+# hand: apt-mark showmanual named nvidia-open, firmware-nvidia-graphics and
+# linux-headers-amd64, and the other fifty nvidia packages on it arrived as
+# dependencies. Listing those fifty would pin versions this module does not choose.
+
+nvidia-open                     # Driver meta; pulls the open kernel modules, DKMS, the GSP firmware and the libraries
+linux-headers-amd64             # What DKMS builds the kernel module against
+firmware-nvidia-graphics        # Display firmware, from non-free-firmware rather than from NVIDIA

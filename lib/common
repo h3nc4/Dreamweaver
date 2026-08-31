@@ -1,0 +1,239 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Sourced by ./install and every install.d module. Must not touch the system: modules run
+# standalone, so machine facts are discovered here, never inherited from the driver.
+
+# Find the checkout by locating this file. $0 covers the driver and the modules, $PWD
+# sourcing by hand, where $0 is the shell.
+if [ -z "${DW_ROOT}" ]; then
+	for _start in "$(dirname -- "$0")" "${PWD}"; do
+		_d="$(CDPATH='' cd -- "${_start}" 2>/dev/null && pwd)" || continue
+		while [ "${_d}" != '/' ] && [ ! -f "${_d}/lib/common" ]; do
+			_d="$(dirname "${_d}")"
+		done
+		if [ -f "${_d}/lib/common" ]; then
+			DW_ROOT="${_d}"
+			break
+		fi
+	done
+	[ -n "${DW_ROOT}" ] || {
+		echo "cannot locate the Dreamweaver checkout; set DW_ROOT" >&2
+		return 1 2>/dev/null || exit 1
+	}
+fi
+export DW_ROOT
+
+################################################################################
+# Output
+
+log() { printf '==> %s\n' "$*"; }
+warn() { printf 'warning: %s\n' "$*" >&2; }
+
+die() {
+	printf 'error: %s\n' "$*" >&2
+	exit 1
+}
+
+# Nothing to do here, which is not an error: grub in a container, crypttab unencrypted,
+# Xorg headless.
+skip() {
+	printf '    skipped: %s\n' "$*"
+	exit 0
+}
+
+################################################################################
+# PATH
+#
+# doas.conf keepenv hands root the caller's PATH, which on Debian has no sbin, making
+# usermod, useradd, update-grub, update-initramfs and virsh "command not found". sudo's
+# secure_path covers them already. Here, not in as_root, so direct calls are covered too.
+case ":${PATH}:" in
+*:/usr/sbin:*) ;;
+*)
+	PATH="/usr/local/sbin:/usr/sbin:/sbin:${PATH}"
+	export PATH
+	;;
+esac
+
+################################################################################
+# Privilege
+#
+# Modules call as_root, never doas directly, which is what lets the container tests run
+# as root and finish in seconds instead of needing a virtual machine.
+
+if [ "$(id -u)" -eq 0 ]; then
+	as_root() { "$@"; }
+elif command -v doas >/dev/null 2>&1; then
+	as_root() { doas "$@"; }
+elif command -v sudo >/dev/null 2>&1; then
+	as_root() { sudo "$@"; }
+else
+	as_root() { die 'neither doas nor sudo is available; run ./bootstrap first'; }
+fi
+
+################################################################################
+# Machine facts
+#
+# Distribution and init system are separate questions. Conflating them is why the old
+# script picked its apt mirror by looking for systemctl.
+
+dw_distro() {
+	if [ -r /etc/os-release ]; then
+		# shellcheck disable=SC1091
+		(. /etc/os-release && printf '%s\n' "${ID:-debian}")
+	else
+		printf 'debian\n'
+	fi
+}
+
+dw_has_systemd() {
+	[ "$(cat /proc/1/comm 2>/dev/null)" = 'systemd' ] ||
+		{ [ -d /run/systemd/system ] && command -v systemctl >/dev/null 2>&1; }
+}
+
+DW_DISTRO="${DW_DISTRO:-$(dw_distro)}"
+export DW_DISTRO
+
+case "${DW_DISTRO}" in
+devuan)
+	DW_MIRROR="${DW_MIRROR:-http://deb.devuan.org/merged}"
+	DW_KEYRING="${DW_KEYRING:-/usr/share/keyrings/devuan-archive-keyring.gpg}"
+	;;
+*)
+	DW_MIRROR="${DW_MIRROR:-http://deb.debian.org/debian/}"
+	DW_KEYRING="${DW_KEYRING:-/usr/share/keyrings/debian-archive-keyring.gpg}"
+	;;
+esac
+export DW_MIRROR DW_KEYRING
+
+if dw_has_systemd; then
+	DW_SYSTEMD=y
+else
+	DW_SYSTEMD=
+fi
+export DW_SYSTEMD
+
+# The user being configured, not whoever runs the module. The tests run as root.
+DW_USER="${DW_USER:-${SUDO_USER:-${DOAS_USER:-${USER:-$(id -un)}}}}"
+export DW_USER
+
+dw_home() {
+	getent passwd "${DW_USER}" 2>/dev/null | cut -d: -f6 ||
+		printf '%s\n' "${HOME}"
+}
+DW_HOME="${DW_HOME:-$(dw_home)}"
+export DW_HOME
+
+################################################################################
+# Feature flags
+#
+# Set by the driver, or from the environment: DW_DEV=1 ./install.d/200-dev-extras
+export DW_OPT DW_DEV DW_GAMES DW_VIRT DW_XORG DW_WAYLAND DW_HEADLESS DW_GUI
+
+enabled() {
+	case "$1" in
+	'' | 0 | n | no) return 1 ;;
+	*) return 0 ;;
+	esac
+}
+
+################################################################################
+# Idempotent primitives
+#
+# No completion markers anywhere: a marker records that a step ran, not that its outcome
+# still holds. Running a module twice equals running it once, checked by test-modules.sh.
+
+# append_once <file> <line>, unless the file already carries it.
+append_once() {
+	_f="$1"
+	_line="$2"
+	if [ -r "${_f}" ] && grep -qxF -- "${_line}" "${_f}"; then
+		return 0
+	fi
+	printf '%s\n' "${_line}" | as_root tee -a "${_f}" >/dev/null
+}
+
+user_exists() { id -u "$1" >/dev/null 2>&1; }
+
+# Name the module that provides the tool, rather than just "wget: not found".
+need() {
+	command -v "$1" >/dev/null 2>&1 ||
+		die "$1 is not installed${2:+; run install.d/$2 first}"
+}
+
+# add_groups <user> <group>..., filtered because usermod refuses the whole call if one
+# group is absent and udev may not have created input or render yet.
+add_groups() {
+	_u="$1"
+	shift
+	_have=''
+	for _g in "$@"; do
+		if getent group "${_g}" >/dev/null 2>&1; then
+			_have="${_have}${_have:+,}${_g}"
+		else
+			warn "group ${_g} does not exist; not adding ${_u} to it"
+		fi
+	done
+	[ -n "${_have}" ] || return 0
+	as_root usermod -aG "${_have}" "${_u}"
+}
+
+# Installed and configured, not merely unpacked.
+pkg_installed() {
+	dpkg-query -W -f='${Status}' "$1" 2>/dev/null | grep -q 'ok installed'
+}
+
+# --force-overwrite for the reason install.d/020-system-upgrade needs it: packages come
+# from testing onto a partly-stable base, so a file that moved between packages upstream
+# arrives as a dpkg unpack conflict.
+apt_install() {
+	DEBIAN_FRONTEND=noninteractive as_root apt-get install -y \
+		-o DPkg::Options::=--force-overwrite "$@"
+}
+
+################################################################################
+# Package manifests
+#
+# packages/<category>.list applies to every base and packages/<category>.<distro>.list to
+# one, both optional. One package per line, # starts a comment, which is where the reason
+# for a package lives.
+
+dw_categories() {
+	printf 'core\n'
+	enabled "${DW_GUI}" && printf 'gui\n'
+	enabled "${DW_XORG}" && printf 'xorg\n'
+	enabled "${DW_WAYLAND}" && printf 'wayl\n'
+	enabled "${DW_OPT}" && printf 'opt\n'
+	enabled "${DW_DEV}" && printf 'dev\n'
+	enabled "${DW_GAMES}" && printf 'games\n'
+	enabled "${DW_VIRT}" && printf 'virt\n'
+	return 0
+}
+
+dw_package_list() {
+	dw_categories | while read -r _cat; do
+		for _f in \
+			"${DW_ROOT}/packages/${_cat}.list" \
+			"${DW_ROOT}/packages/${_cat}.${DW_DISTRO}.list"; do
+			[ -r "${_f}" ] || continue
+			sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' "${_f}"
+		done
+	done
+}

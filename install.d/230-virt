@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# libvirt, services left disabled: a desktop should not run an idle hypervisor stack.
+
+enabled "${DW_VIRT}" || skip 'virtualization not selected'
+command -v virsh >/dev/null 2>&1 || skip 'libvirt is not installed'
+
+as_root virsh net-start default 2>/dev/null || :
+as_root virsh net-autostart default 2>/dev/null || :
+
+add_groups "${DW_USER}" libvirt libvirt-qemu kvm input
+
+# Previously written without doas, so it never applied.
+as_root mkdir -p /etc/libvirt
+printf '%s\n' 'firewall_backend = "iptables"' |
+	as_root tee /etc/libvirt/network.conf >/dev/null
+
+if [ -n "${DW_SYSTEMD}" ]; then
+	as_root systemctl disable --now \
+		libvirtd-ro.socket libvirtd.socket libvirtd-admin.socket \
+		virtlogd.socket virtlogd-admin.socket 2>/dev/null || :
+	as_root systemctl disable --now \
+		libvirtd libvirt-guests virtlogd polkit 2>/dev/null || :
+fi

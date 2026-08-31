@@ -1,0 +1,89 @@
+name: Dreamweaver Dev Container Release
+
+# .github/VERSION is CI's output, not an input, so it is not a trigger: it holds the id of
+# the last published image and only this workflow ever writes it.
+on:
+  push:
+    branches:
+      - "master"
+    paths:
+      - "docker/dev.Dockerfile"
+      - "scripts/entrypoint.sh"
+      - "scripts/switch-user.sh"
+      - ".github/workflows/devcontainer.yaml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  release-image:
+    name: Build and Release Dev Container
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write # bumps the pin, creates the dc-v tag
+    steps:
+      # main rather than the triggering commit: two pushes landing together are serialised
+      # by the concurrency group, and the second has to read the id the first just wrote.
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Record the current version
+        run: echo "CURRENT_ID=$(cat .github/VERSION)" >>"${GITHUB_ENV}"
+      - name: Validate the current version
+        run: |
+          case "${CURRENT_ID}" in # Leading zeroes are not allowed
+            "" | *[!0-9]* | 0?*) echo "::error::bad image id '${CURRENT_ID}'"; exit 1 ;;
+          esac
+      - name: Bump the dev container version
+        run: echo "VERSION=$(( CURRENT_ID + 1 ))" >>"${GITHUB_ENV}"
+      - name: Record the commit being built
+        run: echo "SOURCE_SHA=$(git rev-parse HEAD)" >>"${GITHUB_ENV}"
+      - name: Run docker/setup-buildx-action
+        uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+      - name: Run docker/login-action
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Published before the pin moves, so the pin never names an image that is not there.
+      - name: Run docker/build-push-action
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        with:
+          context: .
+          file: ./docker/dev.Dockerfile
+          push: true
+          tags: |
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ env.VERSION }}
+            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:latest
+      - name: Update .devcontainer.json
+        run: |
+          sed -i "s|-dev:[^\"]*\"|-dev:${VERSION}\"|" .devcontainer.json
+          grep -q -- "-dev:${VERSION}\"" .devcontainer.json
+      - name: Update CI image version file
+        run: echo "${VERSION}" >.github/VERSION
+      - name: Commit and push
+        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
+        with:
+          commit_message: "Bump dev container to ${{ env.VERSION }} [skip ci]"
+          repo: ${{ github.repository }}
+          branch: master
+          file_pattern: ".devcontainer.json .github/VERSION"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Points at the source that produced the image, not at the bump commit that follows.
+      - name: Tag the source that produced the image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: dc-v${{ env.VERSION }}
+        run: |
+          if gh api "repos/${{ github.repository }}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::notice::${TAG} already exists, leaving it alone"
+            exit 0
+          fi
+          gh api --method POST "repos/${{ github.repository }}/git/refs" \
+            -f "ref=refs/tags/${TAG}" -f "sha=${SOURCE_SHA}" >/dev/null
+          echo "::notice::tagged ${SOURCE_SHA} as ${TAG}"

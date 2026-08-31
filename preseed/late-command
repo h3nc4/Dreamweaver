@@ -1,0 +1,75 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Runs inside the freshly installed system, from the preseed's late_command.
+#
+# The payload normally comes off the medium, copied to /root by the preseed. The download
+# fallback keeps `cook-image.sh -n` images working, if the release and key server answer.
+
+set -e
+
+# Everything below is recorded on the target, because a failing install used to leave
+# nothing behind: running under in-target, this output went to a screen window and vanished
+# with the installer's ramdisk, leaving only "failed with exit code 100".
+#
+# The cleanup at the end deliberately spares the log.
+LOG='/root/dreamweaver-install.log'
+exec >>"${LOG}" 2>&1
+echo "=== dreamweaver install starting ==="
+
+PAYLOAD='/root/dreamweaver.tar.gz'
+DEST='/tmp/dreamweaver'
+
+mkdir -p "${DEST}"
+
+if [ ! -f "${PAYLOAD}" ]; then
+	echo "No payload on the medium; downloading it."
+	DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+		ca-certificates gpg gpg-agent wget
+	wget -O "${PAYLOAD}" \
+		https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tar.gz
+	wget -O "${PAYLOAD}.asc" \
+		https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tar.gz.asc
+	wget -O /tmp/dreamweaver.asc https://h3nc4.com/dreamweaver.asc
+	gpg --import /tmp/dreamweaver.asc
+	gpg --verify "${PAYLOAD}.asc" "${PAYLOAD}"
+fi
+
+tar --strip-components=1 -C "${DEST}" -xf "${PAYLOAD}"
+chown -R 1000:1000 "${DEST}"
+
+# Written by profile-select --export before this ran. Absent on an image predating the
+# profile question, where the defaults apply.
+PROFILE='/root/dreamweaver.profile'
+DW_INSTALL_FLAGS=''
+if [ -f "${PROFILE}" ]; then
+	# shellcheck disable=SC1090 # generated during the install
+	. "${PROFILE}"
+	echo "Profile: install ${DW_INSTALL_FLAGS}"
+fi
+
+"${DEST}/bootstrap"
+su - "$(id -nu 1000)" -c \
+	"AUTOMATED=y /bin/sh ${DEST}/install ${DW_INSTALL_FLAGS}"
+
+echo "=== dreamweaver install finished ==="
+
+# ${LOG} is not in this list on purpose.
+rm -rf "${DEST}" "${PAYLOAD}" "${PAYLOAD}.asc" /tmp/dreamweaver.asc \
+	/root/late-command "${PROFILE}"

@@ -1,0 +1,53 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Third-party apt sources, one per optional feature. Each writes a keyring and a sources
+# file, both safe to rewrite.
+
+# add_repo <name> <key url> <uri> <suite> <components>
+add_repo() {
+	as_root mkdir -p /etc/apt/keyrings
+	wget -qO- "$2" | gpg --dearmor | as_root tee "/etc/apt/keyrings/$1.gpg" >/dev/null ||
+		die "could not fetch the $1 signing key"
+	as_root tee "/etc/apt/sources.list.d/$1.sources" >/dev/null <<REPO
+Types: deb
+URIs: $3
+Suites: $4
+Components: $5
+Signed-By: /etc/apt/keyrings/$1.gpg
+REPO
+}
+
+changed=
+
+if enabled "${DW_OPT}"; then
+	add_repo signal 'https://updates.signal.org/desktop/apt/keys.asc' \
+		'https://updates.signal.org/desktop/apt/' xenial main
+	add_repo brave 'https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg' \
+		'https://brave-browser-apt-release.s3.brave.com/' stable main
+	changed=y
+fi
+
+if enabled "${DW_DEV}"; then
+	add_repo codium 'https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg' \
+		'https://download.vscodium.com/debs' vscodium main
+	changed=y
+fi
+
+if enabled "${DW_GAMES}"; then
+	# Steam and the Vulkan drivers are 32-bit.
+	as_root dpkg --add-architecture i386
+	changed=y
+fi
+
+[ -n "${changed}" ] || skip 'no optional repositories selected'
+
+as_root apt-get update -qq

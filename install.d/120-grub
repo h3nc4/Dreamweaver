@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Boot menu. Absent in a container or an EFI-stub setup, so a no-op is fine.
+
+[ -d /boot/grub ] || skip 'no /boot/grub on this system'
+
+# Keys are edited, never the file replaced: that discarded what debian-installer had
+# configured, including GRUB_TERMINAL, GRUB_SERIAL_COMMAND and GRUB_CMDLINE_LINUX, and a
+# machine installed over serial came back with no console at all.
+#
+# GRUB_CMDLINE_LINUX is absent below on purpose. It belongs to whoever installed.
+
+# set_grub <key> <value>
+set_grub() {
+	if grep -q "^$1=" /etc/default/grub 2>/dev/null; then
+		as_root sed -i "s|^$1=.*|$1=$2|" /etc/default/grub
+	else
+		printf '%s=%s\n' "$1" "$2" | as_root tee -a /etc/default/grub >/dev/null
+	fi
+}
+
+as_root touch /etc/default/grub
+
+set_grub GRUB_DEFAULT 0
+set_grub GRUB_TIMEOUT 0
+set_grub GRUB_DISTRIBUTOR Debian
+set_grub GRUB_CMDLINE_LINUX_DEFAULT '"quiet"'
+set_grub GRUB_DISABLE_OS_PROBER true
+set_grub GRUB_BACKGROUND /boot/grub/end.jpg
+
+as_root cp -f "${DW_ROOT}/pics/end.jpg" /boot/grub/
+as_root update-grub

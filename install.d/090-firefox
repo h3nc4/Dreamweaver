@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# A named profile carrying arkenfox's user.js. dwm and dwl launch "firefox -P me", so
+# profiles.ini is untouched.
+
+enabled "${DW_HEADLESS}" && skip 'headless install'
+command -v firefox >/dev/null 2>&1 || skip 'firefox is not installed'
+
+PROFILE="${DW_HOME}/.mozilla/firefox/me"
+
+if [ ! -d "${PROFILE}" ]; then
+	firefox -no-remote -headless -CreateProfile "me ${PROFILE}" >/dev/null 2>&1 ||
+		die 'could not create the firefox profile'
+	rm -rf "${PROFILE:?}/"*
+fi
+
+wget -qO "${PROFILE}/user.js" \
+	'https://raw.githubusercontent.com/arkenfox/user.js/master/user.js' ||
+	die 'could not fetch the arkenfox user.js'
+append_once "${PROFILE}/user.js" 'user_pref("network.dns.disableIPv6", true);'

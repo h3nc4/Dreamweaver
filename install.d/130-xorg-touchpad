@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Tap to click, which libinput leaves off by default.
+
+enabled "${DW_XORG}" || skip 'Xorg not selected'
+
+as_root mkdir -p /etc/X11/xorg.conf.d
+as_root tee /etc/X11/xorg.conf.d/40-libinput.conf >/dev/null <<'CONF'
+Section "InputClass"
+Identifier "libinput touchpad catchall"
+MatchIsTouchpad "on"
+MatchDevicePath "/dev/input/event*"
+Driver "libinput"
+Option "Tapping" "on"
+EndSection
+CONF

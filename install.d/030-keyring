@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# The key that signs the dotfiles release.
+
+need wget 020-system-upgrade
+need gpg 020-system-upgrade
+
+KEYRING='/usr/share/keyrings/dreamweaver.gpg'
+
+if [ -s "${KEYRING}" ] &&
+	gpg --no-default-keyring --keyring "${KEYRING}" --list-keys >/dev/null 2>&1; then
+	skip 'dreamweaver keyring already present'
+fi
+
+as_root mkdir -p /usr/share/keyrings
+wget -qO- 'https://h3nc4.com/dreamweaver.asc' |
+	as_root gpg --batch --no-default-keyring --keyring "${KEYRING}" --import ||
+	die 'could not import the Dreamweaver key'

@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Autologin on the first six ttys. No display manager starts a session here.
+
+if [ -n "${DW_SYSTEMD}" ]; then
+	for _tty in 1 2 3 4 5 6; do
+		as_root mkdir -p "/etc/systemd/system/getty@tty${_tty}.service.d"
+		as_root tee "/etc/systemd/system/getty@tty${_tty}.service.d/override.conf" >/dev/null <<UNIT
+[Service]
+ExecStart=
+ExecStart=-/sbin/agetty --autologin ${DW_USER} --noclear %I \$TERM
+UNIT
+	done
+	[ "$(cat /proc/1/comm 2>/dev/null)" = 'systemd' ] &&
+		as_root systemctl daemon-reload
+	exit 0
+fi
+
+[ -f /etc/inittab ] || skip 'no /etc/inittab and no systemd'
+
+# Guarded: a second sed pass would insert --autologin twice.
+if grep -q -- '--autologin' /etc/inittab; then
+	skip 'inittab already has autologin'
+fi
+
+as_root sed -i "s|38400 \(tty[1-6]\)|--autologin ${DW_USER} 38400 \1|" /etc/inittab

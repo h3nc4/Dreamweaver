@@ -1,0 +1,15 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Extra software. Selected by install -o.
+
+signal-desktop                  # Private messaging
+brave-browser                   # Alternative browser
+libreoffice-writer              # Office suite
+libreoffice-calc                # Office suite
+simplescreenrecorder            # Screen recording
+bluez                           # Bluetooth
+tigervnc-viewer                 # VNC viewer
+transmission-cli                # CLI torrent client

@@ -1,0 +1,204 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# The proprietary NVIDIA driver, from NVIDIA's own repository rather than Debian's
+# non-free: both ship the same package names at different versions, and a mixed stack
+# fails at load with a missing symbol.
+#
+# Derived from a working RTX 5060 install on Devuan 7, so the fingerprints and module
+# options below are what that machine actually had.
+#
+# Not wired into ./install, and dw_categories does not emit this category, so it runs only
+# by name:
+#
+#   DW_NVIDIA=1 ./install.d/250-nvidia
+#
+# Promoting it means a flag in ./install, the repository in 060-extra-repos and 'nvidia' in
+# dw_categories. packages/nvidia.list would not move.
+
+################################################################################
+# Preconditions
+#
+# Before `need`, so an unwanted module skips rather than reporting "wget is not installed".
+
+# sysfs rather than lspci, so this needs no pciutils and is correct in the container tests.
+have_nvidia_gpu() {
+	for _v in /sys/bus/pci/devices/*/vendor; do
+		[ -r "${_v}" ] || continue
+		[ "$(cat "${_v}")" = '0x10de' ] && return 0
+	done
+	return 1
+}
+
+enabled "${DW_NVIDIA:-}" || skip 'DW_NVIDIA is not set'
+have_nvidia_gpu || skip 'no NVIDIA PCI device on this machine'
+
+need wget 020-system-upgrade
+need gpg 020-system-upgrade
+
+################################################################################
+# Repository coordinates
+
+CUDA_HOST='developer.download.nvidia.com'
+CUDA_REPO_DIR="${DW_CUDA_REPO_DIR:-debian13}"
+CUDA_BASE="https://${CUDA_HOST}/compute/cuda/repos/${CUDA_REPO_DIR}/x86_64"
+KEYRING='/etc/apt/keyrings/nvidia-cuda.gpg'
+SOURCES='/etc/apt/sources.list.d/nvidia-cuda.sources'
+PREFS='/etc/apt/preferences.d/nvidia-cuda.pref'
+MODPROBE='/etc/modprobe.d/dreamweaver-nvidia.conf'
+
+# A different key per Debian release, so the pin is per directory: debian12 is `cudatools`,
+# debian13 `Kitmaker (Debian 13 Trixie)`, both read from the published keyring package.
+# There is no debian14 yet, so debian13 is the default.
+if [ -n "${DW_CUDA_FPR:-}" ]; then
+	CUDA_FPR="${DW_CUDA_FPR}"
+else
+	case "${CUDA_REPO_DIR}" in
+	debian13) CUDA_FPR='02182E60104FCDC26EAE1B8597A5D4CB8793F200' ;;
+	debian12) CUDA_FPR='EB693B3035CD5710E231E123A4B469963BF863CC' ;;
+	*) die "no pinned fingerprint for ${CUDA_REPO_DIR}; set DW_CUDA_FPR" ;;
+	esac
+fi
+
+################################################################################
+# Helpers
+
+# write_file <path>, content on stdin. Reports whether anything changed, which is what
+# keeps the initramfs rebuild below off every run.
+write_file() {
+	_dest="$1"
+	_tmp="$(mktemp)"
+	cat >"${_tmp}"
+	if [ -r "${_dest}" ] && cmp -s "${_tmp}" "${_dest}"; then
+		rm -f "${_tmp}"
+		return 1
+	fi
+	as_root mkdir -p "$(dirname "${_dest}")"
+	as_root cp -f "${_tmp}" "${_dest}"
+	as_root chmod 0644 "${_dest}"
+	rm -f "${_tmp}"
+	return 0
+}
+
+keyring_ok() {
+	[ -s "${KEYRING}" ] &&
+		gpg --show-keys --with-colons "${KEYRING}" 2>/dev/null |
+		grep -q "^fpr:::::::::${CUDA_FPR}:"
+}
+
+# The documented 3bf863cc.pub is gone, and trust now arrives only inside
+# cuda-keyring_*.deb. So it is downloaded, unpacked, and the key inside checked against the
+# fingerprint above before anything installs it, as dev.Dockerfile does for the CD keys.
+install_keyring() {
+	_work="$(mktemp -d)"
+	# shellcheck disable=SC2064
+	trap "rm -rf '${_work}'" EXIT INT TERM
+
+	wget -qO "${_work}/keyring.deb" "${CUDA_BASE}/cuda-keyring_1.1-1_all.deb" ||
+		die "could not download the CUDA keyring from ${CUDA_BASE}"
+
+	dpkg-deb -x "${_work}/keyring.deb" "${_work}/x" ||
+		die 'the CUDA keyring package did not unpack'
+
+	_key="${_work}/x/usr/share/keyrings/cuda-archive-keyring.gpg"
+	[ -s "${_key}" ] || die 'no keyring inside the CUDA keyring package'
+
+	gpg --show-keys --with-colons "${_key}" 2>/dev/null |
+		grep -q "^fpr:::::::::${CUDA_FPR}:" ||
+		die "the downloaded CUDA key is not ${CUDA_FPR}; refusing to trust it"
+
+	as_root mkdir -p /etc/apt/keyrings
+	as_root cp -f "${_key}" "${KEYRING}"
+	as_root chmod 0644 "${KEYRING}"
+	log "pinned the CUDA signing key ${CUDA_FPR}"
+}
+
+################################################################################
+# The repository
+
+if keyring_ok; then
+	log 'CUDA signing key already pinned'
+else
+	install_keyring
+fi
+
+# A flat repository, which deb822 spells `Suites: /` with no Components line.
+changed=
+if write_file "${SOURCES}" <<SRC; then
+Types: deb
+URIs: ${CUDA_BASE}/
+Suites: /
+Signed-By: ${KEYRING}
+SRC
+	changed=y
+fi
+
+# Above 1000, so an existing Debian nvidia-driver is downgraded onto this origin.
+if write_file "${PREFS}" <<PREF; then
+Package: *
+Pin: origin ${CUDA_HOST}
+Pin-Priority: 1001
+PREF
+	changed=y
+fi
+
+[ -z "${changed}" ] || as_root apt-get update -qq
+
+################################################################################
+# The driver
+
+pkgs="$(
+	for _f in "${DW_ROOT}/packages/nvidia.list" \
+		"${DW_ROOT}/packages/nvidia.${DW_DISTRO}.list"; do
+		[ -r "${_f}" ] || continue
+		sed -e 's/#.*//' -e 's/[[:space:]]*$//' -e '/^$/d' "${_f}"
+	done
+)"
+[ -n "${pkgs}" ] || die 'packages/nvidia.list is empty'
+
+log "installing $(printf '%s\n' "${pkgs}" | wc -l | tr -d ' ') NVIDIA packages"
+# shellcheck disable=SC2086
+apt_install ${pkgs} || die 'the NVIDIA driver failed to install'
+
+################################################################################
+# Kernel module options
+#
+# One file, where the derived machine had six overlapping ones. Every line was on it except
+# NVreg_EnableGpuFirmware=0, dropped because the open modules need GSP firmware.
+#
+# nova-core is blacklisted with nouveau, being the newer in-tree driver for the same
+# hardware: a kernel that binds it first leaves nvidia with no device.
+
+if write_file "${MODPROBE}" <<'CONF'; then
+blacklist nouveau
+blacklist nova-core
+options nouveau modeset=0
+
+# Required for Wayland, and for Xorg to get a modesetting-capable device.
+options nvidia-drm modeset=1
+
+# Suspend and resume. Without the first, video memory is not saved and the session comes
+# back corrupted.
+options nvidia NVreg_PreserveVideoMemoryAllocations=1
+options nvidia NVreg_TemporaryFilePath=/var/tmp
+options nvidia NVreg_EnableS0ixPowerManagement=1
+CONF
+	log "wrote ${MODPROBE}"
+	# The blacklist must reach the initramfs, or nouveau binds the card before the root
+	# filesystem is up and nvidia never gets it.
+	if command -v update-initramfs >/dev/null 2>&1; then
+		as_root update-initramfs -u
+	else
+		warn 'no update-initramfs; rebuild the initramfs for the nouveau blacklist to apply'
+	fi
+fi
+
+log 'NVIDIA driver installed; reboot for the kernel module to load'

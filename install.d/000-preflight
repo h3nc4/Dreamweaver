@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Preconditions, before anything changes.
+
+[ "$(id -u)" -eq 0 ] && [ -z "${DW_ALLOW_ROOT}" ] &&
+	die 'run this as your regular user, not as root'
+
+command -v apt-get >/dev/null 2>&1 ||
+	die 'no apt-get; this is not a Debian or Devuan system'
+
+as_root true 2>/dev/null ||
+	die 'cannot escalate; run ./bootstrap as root first'
+
+# Every later module needs the network, and a netinst caches nothing.
+if ! ping -c 2 -W 5 gnu.org >/dev/null 2>&1; then
+	if ! getent hosts deb.debian.org >/dev/null 2>&1; then
+		die 'no network'
+	fi
+	warn 'ICMP is blocked but DNS resolves; continuing'
+fi
+
+log "distribution: ${DW_DISTRO}"
+log "init: ${DW_SYSTEMD:+systemd}${DW_SYSTEMD:-sysvinit}"
+log "user: ${DW_USER} (${DW_HOME})"
+log "mirror: ${DW_MIRROR}"

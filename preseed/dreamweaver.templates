@@ -1,0 +1,33 @@
+Template: dreamweaver/title
+Type: title
+Description: Dreamweaver
+
+Template: dreamweaver/session
+Type: select
+Choices: xorg, wayland, headless
+Default: xorg
+Description: Graphical session:
+ Dreamweaver has no display manager. The session starts on login.
+ .
+ xorg installs dwm, st, dmenu and sxac. This is the default.
+ .
+ wayland installs dwl and the Wayland tools instead.
+ .
+ headless installs no graphical software at all.
+
+Template: dreamweaver/extras
+Type: multiselect
+Choices: extra, development, gaming, virtualization
+Default:
+Description: Optional software:
+ None of these are required. Each can also be added later by re-running the
+ installer script on the installed system.
+ .
+ extra: Signal, Brave, LibreOffice, Bluetooth, a torrent client.
+ .
+ development: VSCodium, Docker, compilers, SQLite tools, and a second account
+ that shares your configuration.
+ .
+ gaming: Steam and the 32-bit graphics drivers. Enables non-free packages.
+ .
+ virtualization: QEMU, KVM and libvirt, with their services left disabled.

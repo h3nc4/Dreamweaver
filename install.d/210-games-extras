@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# A Steam account, sharing the dotfiles the way the dev account does.
+
+enabled "${DW_GAMES}" || skip 'gaming software not selected'
+[ -d /var/shared-dotconfig ] || skip 'the shared dotfiles mount does not exist; run 200-dev-extras first'
+
+user_exists steam || as_root useradd -m -s /bin/bash steam
+as_root mkdir -p /home/steam/.ssh /home/steam/.config
+as_root chown -R steam:steam /home/steam/.ssh /home/steam/.config
+
+need bindfs 070-packages
+
+if [ -c /dev/fuse ]; then
+	mountpoint -q /home/steam/.config ||
+		as_root bindfs --map=root/steam:@root/@steam /var/shared-dotconfig /home/steam/.config
+else
+	warn 'no /dev/fuse; the shared .config is configured but not mounted until reboot'
+fi
+
+append_once /etc/fstab \
+	'bindfs#/var/shared-dotconfig /home/steam/.config fuse map=root/steam:@root/@steam 0 0'

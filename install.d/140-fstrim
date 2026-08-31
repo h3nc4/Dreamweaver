@@ -1,0 +1,29 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# Weekly trim, via cron rather than a timer, so both inits behave the same.
+
+# A netinst may have no cron at all. The file is written regardless, so it starts working
+# if one arrives later.
+command -v cron >/dev/null 2>&1 || command -v crond >/dev/null 2>&1 ||
+	warn 'no cron installed; the weekly trim will not fire until one is'
+
+as_root mkdir -p /etc/cron.weekly
+as_root tee /etc/cron.weekly/fstrim >/dev/null <<'TRIM'
+#!/bin/sh
+{
+	echo "===== $(date) ====="
+	fstrim --all --verbose
+} >>/var/log/fstrim.log 2>&1
+TRIM
+as_root chmod +x /etc/cron.weekly/fstrim
+as_root touch /var/log/fstrim.log
+as_root chmod 644 /var/log/fstrim.log

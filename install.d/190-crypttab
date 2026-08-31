@@ -1,0 +1,34 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# One passphrase unlocks every encrypted partition. The hook exists because
+# cryptsetup-initramfs does not refresh /etc/crypttab inside the initramfs, and without it
+# the second partition prompts again.
+
+[ -f /etc/crypttab ] || skip 'no /etc/crypttab on this system'
+[ -s /etc/crypttab ] || skip '/etc/crypttab is empty'
+
+as_root mkdir -p /etc/initramfs-tools/hooks
+as_root tee /etc/initramfs-tools/hooks/dreamweaver-crypttab >/dev/null <<'HOOK'
+#!/bin/sh
+cp /etc/crypttab "${DESTDIR}/cryptroot/crypttab"
+exit 0
+HOOK
+as_root chmod +x /etc/initramfs-tools/hooks/dreamweaver-crypttab
+as_root rm -f /etc/initramfs-tools/hooks/fix_multiple
+
+# Guarded, not merely repeated: appending the keyscript twice corrupts the file.
+if grep -q ',initramfs,keyscript=decrypt_keyctl' /etc/crypttab; then
+	skip 'crypttab already carries the keyscript'
+fi
+
+as_root sed -i 's/$/,initramfs,keyscript=decrypt_keyctl/' /etc/crypttab
+as_root update-initramfs -u

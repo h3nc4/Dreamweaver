@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# The package set, from packages/ rather than from conditionals in here.
+
+# shellcheck disable=SC2046 # the manifest is a word list by design
+set -- $(dw_package_list | sort -u)
+[ "$#" -gt 0 ] || die 'the package manifests resolved to nothing'
+
+log "installing $# packages from: $(dw_categories | tr '\n' ' ')"
+apt_install "$@" || die 'package installation failed'
+
+# Fills the command-not-found cache. Not worth stopping for.
+as_root apt-get update -qq || :

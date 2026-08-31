@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# The full install test is too slow for a hook, but re-checking an image already in the
+# tree is cheap and catches boot-layout regressions.
+
+set -e
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "${repo_root}"
+
+./scripts/ci.sh
+
+for iso in dreamweaver-*.iso; do
+	[ -f "${iso}" ] || continue
+	./scripts/verify-iso.sh "${iso}"
+done

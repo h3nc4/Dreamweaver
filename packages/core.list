@@ -1,0 +1,69 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Installed on every Dreamweaver system.
+
+fonts-freefont-ttf              # Fonts
+man-db                          # Manual pages
+manpages                        # Manual pages
+keyutils                        # Scripts for mounting encrypted partitions
+openssh-client                  # Secure remote access
+gnupg                           # encryption and signatures
+telnet                          # Unsecure remote access
+rfkill                          # Manages wireless devices
+nmap                            # Network scanner
+net-tools                       # Network tools
+ufw                             # Uncomplicated Firewall
+util-linux                      # Essential system utilities
+sysstat                         # System statistics
+lsof                            # Lists open files
+progress                        # Check progress of coreutils
+pv                              # Pipe progress viewer
+tmux                            # Terminal multiplexer
+lm-sensors                      # Hardware monitoring
+brightnessctl                   # Controls brightness on a hardware level
+lf                              # File manager
+ffmpegthumbnailer               # Thumbnails
+imagemagick                     # Image manipulation
+poppler-utils                   # PDF manipulation
+mpv                             # Media player
+ffmpeg                          # Everything multimedia files
+python3-taglib                  # Media file metadata
+pipewire-pulse                  # Audio server compatible with PulseAudio
+pipewire-audio                  # Handle many devices
+wireplumber                     # Session manager for PipeWire
+pulsemixer                      # PulseAudio mixer
+newsboat                        # RSS reader
+command-not-found               # Suggests packages for missing commands
+bash-completion                 # Tab completion
+gcc                             # Compilation
+make                            # Compilation
+libreadline-dev                 # Compilation
+git                             # Version control system
+patch                           # code patching tool
+nano                            # Simple text editor by GNU
+neovim                          # Extensible text editor
+zip                             # Zip file creation
+unzip                           # Zip file extraction
+xz-utils                        # XZ compression
+xdg-utils                       # xdg-open
+libfile-mimeinfo-perl           # File type detection for xdg-open
+curl                            # Communicate with servers
+rsync                           # File synchronization
+tor                             # Onion services access
+torsocks                        # Onion services access
+aerc                            # Email client
+tty-clock                       # Curses clock
+fonts-noto-cjk                  # Chinese chars
+iw                              # Network discovery and configuration
+lbzip2                          # Compression algo
+dosfstools                      # DOS file system tools
+smartmontools                   # Disk monitoring
+gnumeric                        # Spreadsheet
+catdoc                          # Word file reader
+docx2txt                        # Word file reader
+bindfs                          # FUSE file system
+vlock                           # Terminal lock
+acl                             # Access control lists

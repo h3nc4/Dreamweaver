@@ -1,0 +1,15 @@
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+#
+# Xorg session. Selected by install -x, the default when -w and -h are absent.
+
+xorg                            # Display server
+xinit                           # Startup scripts for Xorg
+compton                         # Modern compositor for Xorg
+xclip                           # Clipboard manager
+xwallpaper                      # Sets up wallpapers
+maim                            # Screen capture
+arandr                          # Monitor configuration
+ueberzug                        # Image preview

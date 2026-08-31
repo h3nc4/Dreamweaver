@@ -1,0 +1,60 @@
+#!/bin/sh
+#
+# Copyright (C) 2022-2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+# shellcheck source=lib/common
+. "$(dirname "$0")/../lib/common"
+
+# A second account sharing the dotfiles through bindfs, and services left disabled.
+
+enabled "${DW_DEV}" || skip 'development software not selected'
+# shellcheck disable=SC1091
+[ -r "${DW_HOME}/.config/env" ] && . "${DW_HOME}/.config/env"
+
+add_groups "${DW_USER}" docker
+
+if command -v codium >/dev/null 2>&1; then
+	CODIUM_DATA_DIR="$(dirname "$(readlink -f /usr/bin/codium)")/../data"
+	as_root mkdir -p "${CODIUM_DATA_DIR}"
+	as_root chown "${DW_USER}:${DW_USER}" "${CODIUM_DATA_DIR}"
+fi
+
+if [ -n "${DW_SYSTEMD}" ]; then
+	as_root systemctl disable --now docker.socket 2>/dev/null || :
+	as_root systemctl disable --now docker containerd postgresql 2>/dev/null || :
+fi
+
+user_exists dev || as_root useradd -m -s /bin/bash dev
+as_root mkdir -p /home/dev/.ssh /home/dev/.config
+as_root chown -R dev:dev /home/dev/.ssh /home/dev/.config
+
+# A one-way move, guarded: repeating it would move an already-mounted directory.
+if [ ! -d /var/shared-dotconfig ]; then
+	[ -d "${DW_HOME}/.config" ] ||
+		die "no ${DW_HOME}/.config to share; run install.d/040-dotfiles first"
+	as_root mv "${DW_HOME}/.config" /var/shared-dotconfig
+	mkdir -p "${DW_HOME}/.config"
+fi
+
+need bindfs 070-packages
+
+# fstab is written either way, since it is what survives a reboot. The mounts below cover
+# only this boot, and FUSE is unavailable in a container.
+if [ -c /dev/fuse ]; then
+	mountpoint -q "${DW_HOME}/.config" ||
+		as_root bindfs --map=root/"${DW_USER}":@root/@"${DW_USER}" \
+			/var/shared-dotconfig "${DW_HOME}/.config"
+	mountpoint -q /home/dev/.config ||
+		as_root bindfs --map=root/dev:@root/@dev /var/shared-dotconfig /home/dev/.config
+else
+	warn 'no /dev/fuse; the shared .config is configured but not mounted until reboot'
+fi
+
+append_once /etc/fstab \
+	"bindfs#/var/shared-dotconfig ${DW_HOME}/.config fuse map=root/${DW_USER}:@root/@${DW_USER} 0 0"
+append_once /etc/fstab \
+	'bindfs#/var/shared-dotconfig /home/dev/.config fuse map=root/dev:@root/@dev 0 0'
