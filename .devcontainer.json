@@ -17,7 +17,7 @@
 
 {
   "name": "Dreamweaver",
-  "image": "h3nc4/dreamweaver-dev:0",
+  "image": "h3nc4/dreamweaver-dev:1",
   "runArgs": [
     "--name=dreamweaver-devcontainer",
     "--network=host",
