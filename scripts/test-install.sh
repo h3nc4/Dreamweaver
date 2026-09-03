@@ -106,6 +106,33 @@ fi
 mkdir -p "${OUT_DIR}"
 
 ################################################################################
+# The installer is booted with -kernel and -initrd rather than from the medium, because both
+# images have a menu with `timeout 0` and nothing here presses a key. Patching the ISO does
+# not help, since the UEFI loader is inside an anonymous FAT image in the El Torito catalog.
+# The CD stays attached for packages, and the boot phase below still goes through firmware.
+#
+# Debian keeps the kernel in install.amd, Devuan in boot/isolinux. gtk and xen are not it.
+INITRD_PATH="$(xorriso -indev "${ISO}" -find / -name initrd.gz 2>/dev/null |
+	sed -e "s/^'//" -e "s/'\$//" | grep -v '/gtk/\|/xen/' | head -n 1)"
+[ -n "${INITRD_PATH}" ] || die "no installer initrd in ${ISO}"
+
+BOOT_DIR="$(dirname "${INITRD_PATH}")"
+KERNEL_PATH=''
+for _k in vmlinuz linux; do
+	if xorriso -indev "${ISO}" -find "${BOOT_DIR}" -name "${_k}" 2>/dev/null | grep -q .; then
+		KERNEL_PATH="${BOOT_DIR}/${_k}"
+		break
+	fi
+done
+[ -n "${KERNEL_PATH}" ] || die "no kernel next to ${INITRD_PATH}"
+
+xorriso -report_about SORRY -osirrox on -indev "${ISO}" \
+	-extract "${KERNEL_PATH}" "${OUT_DIR}/kernel" \
+	-extract "${INITRD_PATH}" "${OUT_DIR}/initrd.gz" 2>/dev/null
+chmod u+w "${OUT_DIR}/kernel" "${OUT_DIR}/initrd.gz"
+echo "installer: ${KERNEL_PATH} + ${INITRD_PATH}"
+
+################################################################################
 
 # run_qemu <firmware> <timeout> <label> <extra args...>
 run_qemu() {
@@ -163,13 +190,23 @@ test_firmware() {
 	rm -f "${_disk}"
 	qemu-img create -q -f qcow2 "${_disk}" "${DISK_SIZE}"
 
-	# -no-reboot turns the installer's final reboot into a clean exit, the signal that
-	# the preseed ran to the end.
+	# -no-reboot turns the installer's final reboot into a clean exit. console=ttyS0 puts
+	# d-i on the serial log, so a failure leaves something to read.
 	if ! run_qemu "${_fw}" "${INSTALL_TIMEOUT}" "${_fw}-install" \
+		-kernel "${OUT_DIR}/kernel" \
+		-initrd "${OUT_DIR}/initrd.gz" \
+		-append 'console=ttyS0,115200n8 DEBIAN_FRONTEND=text TERM=linux' \
 		-drive "file=${ISO},format=raw,if=none,id=cd,media=cdrom,readonly=on" \
-		-device ide-cd,drive=cd,bootindex=0; then
+		-device ide-cd,drive=cd; then
 		screenshot "${_fw}-install"
 		die "${_fw}: the installer did not finish. See ${OUT_DIR}/${_fw}-install.*"
+	fi
+
+	# A clean exit is not proof of an install. One that never starts also exits cleanly,
+	# when the firmware runs out of boot options and resets, and that passed for months.
+	if [ "$(stat -c %s "${_disk}")" -lt 104857600 ]; then
+		screenshot "${_fw}-install"
+		die "${_fw}: the installer exited without writing to the disk. See ${OUT_DIR}/${_fw}-install.*"
 	fi
 
 	echo "# ${_fw}: booting the installed system"
