@@ -43,7 +43,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@896daea2e2bdda063d6992243c634f156ce057ac # v1.0.0
+        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2.0.0
         with:
           published-repo: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev
       - name: Lint shell and prose
