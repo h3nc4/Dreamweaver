@@ -36,22 +36,22 @@ image="$(./scripts/devcontainer-image.sh)"
 label="com.h3nc4.local-build"
 
 if docker image inspect "${image}" >/dev/null 2>&1; then
-  # A local build stands in until the release publishes the real one, so this is the moment
-  # to take the published image instead. Nothing to do for an image that came from there.
-  if docker image inspect "${image}" --format '{{json .Config.Labels}}' |
-    grep -q "\"${label}\":\"true\""; then
-    if docker pull -q "${image}" >/dev/null 2>&1; then
-      echo "${image} is published now, so the local build of it is gone"
-    fi
-  fi
-  exit 0
+	# A local build stands in until the release publishes the real one, so this is the moment
+	# to take the published image instead. Nothing to do for an image that came from there.
+	if docker image inspect "${image}" --format '{{json .Config.Labels}}' |
+		grep -q "\"${label}\":\"true\""; then
+		if docker pull -q "${image}" >/dev/null 2>&1; then
+			echo "${image} is published now, so the local build of it is gone"
+		fi
+	fi
+	exit 0
 fi
 
 # A version main has released is in the registry, and pulling it beats a second build of the
 # same Dockerfile that would differ in every apt timestamp.
 if docker pull -q "${image}" >/dev/null 2>&1; then
-  echo "pulled ${image}"
-  exit 0
+	echo "pulled ${image}"
+	exit 0
 fi
 
 # Labelled, so the branch above can tell this apart from the published image later.

@@ -31,50 +31,50 @@ set -eu
 
 part="ref"
 case "${1:-}" in
-  -r)
-    part="repo"
-    shift
-    ;;
-  -t)
-    part="tag"
-    shift
-    ;;
-  *) ;; # a file, or nothing at all
+-r)
+	part="repo"
+	shift
+	;;
+-t)
+	part="tag"
+	shift
+	;;
+*) ;; # a file, or nothing at all
 esac
 
 file="${1:--}"
 if [ "${file}" = "-" ] && [ $# -eq 0 ]; then
-  file=".devcontainer.json"
+	file=".devcontainer.json"
 fi
 if [ "${file}" != "-" ] && [ ! -f "${file}" ]; then
-  echo "${file} is not there" >&2
-  exit 1
+	echo "${file} is not there" >&2
+	exit 1
 fi
 
 # The first "image" key, which in a dev container definition is the top-level one. A key
 # behind a // comment does not open its line, so a commented-out image is passed over.
 ref="$(
-  sed -n 's/^[[:space:]]*"image"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${file}" |
-    head -n 1
+	sed -n 's/^[[:space:]]*"image"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${file}" |
+		head -n 1
 )"
 if [ -z "${ref}" ]; then
-  echo "no image key in ${file}" >&2
-  exit 1
+	echo "no image key in ${file}" >&2
+	exit 1
 fi
 
 # A reference with no tag pulls whatever latest happens to be, which is the opposite of a
 # pin. The colon has to sit in the last path element, since an earlier one is a registry's
 # port.
 case "${ref##*/}" in
-  *:?*) ;;
-  *)
-    echo "the image in ${file} is '${ref}', which carries no tag" >&2
-    exit 1
-    ;;
+*:?*) ;;
+*)
+	echo "the image in ${file} is '${ref}', which carries no tag" >&2
+	exit 1
+	;;
 esac
 
 case "${part}" in
-  repo) printf '%s\n' "${ref%:*}" ;;
-  tag) printf '%s\n' "${ref##*:}" ;;
-  *) printf '%s\n' "${ref}" ;;
+repo) printf '%s\n' "${ref%:*}" ;;
+tag) printf '%s\n' "${ref##*:}" ;;
+*) printf '%s\n' "${ref}" ;;
 esac
