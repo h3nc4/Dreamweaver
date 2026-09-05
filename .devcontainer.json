@@ -18,6 +18,7 @@
 {
   "name": "Dreamweaver",
   "image": "h3nc4/dreamweaver-dev:2",
+  "initializeCommand": "${localWorkspaceFolder}/scripts/devcontainer-init.sh",
   "runArgs": [
     "--name=dreamweaver-devcontainer",
     "--network=host",

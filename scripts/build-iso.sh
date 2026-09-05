@@ -31,7 +31,7 @@ ALL_DISTROS='debian devuan'
 DISTROS=''
 COOK_FLAGS=''
 
-DEV_IMAGE_REPO="${DEV_IMAGE_REPO:-${DOCKERHUB_USERNAME:-h3nc4}/dreamweaver-dev}"
+DEV_IMAGE_REPO="${DEV_IMAGE_REPO:-$(./scripts/devcontainer-image.sh -r)}"
 
 usage() {
 	cat >&2 <<-EOF
@@ -68,7 +68,7 @@ shift $((OPTIND - 1))
 
 DISTROS="${DISTROS:-${ALL_DISTROS}}"
 
-dev_image_tag="$(cat .github/VERSION)"
+dev_image_tag="$(./scripts/devcontainer-image.sh -t)"
 
 # Checked here because BuildKit's own failure says only "not found", which hints at
 # nothing.

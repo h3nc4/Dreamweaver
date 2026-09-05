@@ -1,8 +1,13 @@
-name: Dreamweaver Dev Container Release
+name: Dreamweaver Dev Container
 
-# .github/VERSION is CI's output, not an input, so it is not a trigger: it holds the id of
-# the last published image and only this workflow ever writes it.
 on:
+  pull_request:
+    branches:
+      - "master"
+    paths:
+      - "docker/dev.Dockerfile"
+      - "scripts/entrypoint.sh"
+      - "scripts/switch-user.sh"
   push:
     branches:
       - "master"
@@ -10,79 +15,127 @@ on:
       - "docker/dev.Dockerfile"
       - "scripts/entrypoint.sh"
       - "scripts/switch-user.sh"
-      - ".github/workflows/devcontainer.yaml"
+      - ".devcontainer.json"
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}
-
 jobs:
-  release-image:
-    name: Build and Release Dev Container
+  bump:
+    name: Pin the next dev container
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-bump-${{ github.ref }}
+      cancel-in-progress: true
     permissions:
-      contents: write # bumps the pin, creates the dc-v tag
+      contents: write # pushes the pin to this pull request's branch
     steps:
-      # main rather than the triggering commit: two pushes landing together are serialised
-      # by the concurrency group, and the second has to read the id the first just wrote.
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Take the next version from the base branch
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: |
+          git fetch --quiet --depth=1 origin "${BASE_REF}"
+          pin="$(git show FETCH_HEAD:.devcontainer.json)"
+          repo="$(printf '%s\n' "${pin}" | scripts/devcontainer-image.sh -r -)"
+          base_id="$(printf '%s\n' "${pin}" | scripts/devcontainer-image.sh -t -)"
+          case "${base_id}" in # Leading zeroes are not allowed
+            "" | *[!0-9]* | 0?*)
+              echo "::error::bad image id '${base_id}' on ${BASE_REF}"
+              exit 1
+              ;;
+          esac
+          {
+            echo "IMAGE_REPO=${repo}"
+            echo "VERSION=$(( base_id + 1 ))"
+          } >>"${GITHUB_ENV}"
+      - name: Move the pin
+        run: |
+          sed -i \
+            "s|\(\"image\"[[:space:]]*:[[:space:]]*\"${IMAGE_REPO}\):[^\"]*\"|\1:${VERSION}\"|" \
+            .devcontainer.json
+          if ! grep -q "\"${IMAGE_REPO}:${VERSION}\"" .devcontainer.json; then
+            echo "::error::.devcontainer.json does not pin ${IMAGE_REPO}:${VERSION}." \
+              "Its image key has to name the same repository as the base branch does."
+            exit 1
+          fi
+      - name: Commit and push the pin
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          if git diff --quiet -- .devcontainer.json; then
+            echo "::notice::already pinned to ${IMAGE_REPO}:${VERSION}"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -qm "Bump dev container to ${VERSION} [skip ci]" -- .devcontainer.json
+          git push origin "HEAD:${HEAD_REF}"
+
+  release:
+    name: Publish and tag the pinned dev container
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-release
+    permissions:
+      contents: write # creates the dc-v tag
+    steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: master
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Record the current version
-        run: echo "CURRENT_ID=$(cat .github/VERSION)" >>"${GITHUB_ENV}"
-      - name: Validate the current version
+          fetch-depth: 0 # fetch all history so the tag check can see them
+      - name: Read the pin
         run: |
-          case "${CURRENT_ID}" in # Leading zeroes are not allowed
-            "" | *[!0-9]* | 0?*) echo "::error::bad image id '${CURRENT_ID}'"; exit 1 ;;
-          esac
-      - name: Bump the dev container version
-        run: echo "VERSION=$(( CURRENT_ID + 1 ))" >>"${GITHUB_ENV}"
-      - name: Record the commit being built
-        run: echo "SOURCE_SHA=$(git rev-parse HEAD)" >>"${GITHUB_ENV}"
+          {
+            echo "IMAGE_REPO=$(scripts/devcontainer-image.sh -r)"
+            echo "VERSION=$(scripts/devcontainer-image.sh -t)"
+          } >>"${GITHUB_ENV}"
+      - name: Decide whether this pin still needs releasing
+        run: |
+          tag="dc-v${VERSION}"
+          echo "SOURCE_TAG=${tag}" >>"${GITHUB_ENV}"
+          if ! git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
+            echo "RELEASE=yes" >>"${GITHUB_ENV}"
+            exit 0
+          fi
+          echo "RELEASE=no" >>"${GITHUB_ENV}"
+          changed="$(git diff --name-only "${tag}" HEAD -- \
+            docker/dev.Dockerfile scripts/entrypoint.sh scripts/switch-user.sh)"
+          if [ -n "${changed}" ]; then
+            echo "::error::the pin is still ${VERSION}, which ${tag} already released, but" \
+              "these moved since: $(echo "${changed}" | tr '\n' ' '). Open a pull request so" \
+              "the bump lands in the same commit as the change."
+            exit 1
+          fi
+          echo "::notice::${tag} is released and nothing has moved since, so there is nothing to do"
       - name: Run docker/setup-buildx-action
+        if: env.RELEASE == 'yes'
         uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
       - name: Run docker/login-action
+        if: env.RELEASE == 'yes'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # Published before the pin moves, so the pin never names an image that is not there.
       - name: Run docker/build-push-action
+        if: env.RELEASE == 'yes'
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
         with:
           context: .
           file: ./docker/dev.Dockerfile
           push: true
           tags: |
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ env.VERSION }}
-            ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:latest
-      - name: Update .devcontainer.json
+            ${{ env.IMAGE_REPO }}:${{ env.VERSION }}
+            ${{ env.IMAGE_REPO }}:latest
+      - name: Tag the commit that carries the change, the pin and the image
+        if: env.RELEASE == 'yes'
         run: |
-          sed -i "s|-dev:[^\"]*\"|-dev:${VERSION}\"|" .devcontainer.json
-          grep -q -- "-dev:${VERSION}\"" .devcontainer.json
-      - name: Update CI image version file
-        run: echo "${VERSION}" >.github/VERSION
-      - name: Commit and push
-        uses: planetscale/ghcommit-action@a6b150b81dca5dd027baa898604418eec9e11465 # v0.2.22
-        with:
-          commit_message: "Bump dev container to ${{ env.VERSION }} [skip ci]"
-          repo: ${{ github.repository }}
-          branch: master
-          file_pattern: ".devcontainer.json .github/VERSION"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      # Points at the source that produced the image, not at the bump commit that follows.
-      - name: Tag the source that produced the image
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: dc-v${{ env.VERSION }}
-        run: |
-          if gh api "repos/${{ github.repository }}/git/ref/tags/${TAG}" >/dev/null 2>&1; then
-            echo "::notice::${TAG} already exists, leaving it alone"
-            exit 0
-          fi
-          gh api --method POST "repos/${{ github.repository }}/git/refs" \
-            -f "ref=refs/tags/${TAG}" -f "sha=${SOURCE_SHA}" >/dev/null
-          echo "::notice::tagged ${SOURCE_SHA} as ${TAG}"
+          git tag "${SOURCE_TAG}"
+          git push origin "${SOURCE_TAG}"
+          echo "::notice::tagged $(git rev-parse --short HEAD) as ${SOURCE_TAG}"

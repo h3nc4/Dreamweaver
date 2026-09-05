@@ -300,7 +300,7 @@ fi
 command -v docker >/dev/null 2>&1 ||
 	die 'no qemu-system-x86_64 and no docker; run this from the host or the dev container'
 
-dev_image_tag="${DEV_IMAGE_TAG:-$(cat .github/VERSION)}"
+dev_image_tag="${DEV_IMAGE_TAG:-$(./scripts/devcontainer-image.sh -t)}"
 DEV_IMAGE="${DEV_IMAGE_REPO}:${dev_image_tag}"
 
 if ! docker image inspect "${DEV_IMAGE}" >/dev/null 2>&1; then

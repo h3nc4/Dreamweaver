@@ -39,8 +39,8 @@ jobs:
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - id: read_tag
-        run: echo "tag=$(cat .github/VERSION)" >>"${GITHUB_OUTPUT}"
+      - id: dev_image
+        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"${GITHUB_OUTPUT}"
       - name: Run docker/login-action
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
         with:
@@ -50,7 +50,7 @@ jobs:
       # problem for the published images.
       - name: Scan the dev image
         env:
-          IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ steps.read_tag.outputs.tag }}
+          IMAGE: ${{ steps.dev_image.outputs.ref }}
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \

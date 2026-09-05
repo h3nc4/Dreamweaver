@@ -58,12 +58,12 @@ jobs:
     name: Prepare environment
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.read_tag.outputs.tag }}
+      dev-image: ${{ steps.dev_image.outputs.ref }}
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - id: read_tag
-        run: echo "tag=$(cat .github/VERSION)" >>"${GITHUB_OUTPUT}"
+      - id: dev_image
+        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"${GITHUB_OUTPUT}"
 
   profile:
     name: Profile question on ${{ matrix.distro }}
@@ -97,7 +97,7 @@ jobs:
             -w /workspaces/Dreamweaver \
             --entrypoint /workspaces/Dreamweaver/scripts/test-profile.sh \
             --user root \
-            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ needs.prepare.outputs.tag }}" \
+            "${{ needs.prepare.outputs.dev-image }}" \
             "$(printf '%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
       - name: Run actions/upload-artifact
         if: failure()
@@ -141,7 +141,7 @@ jobs:
             -w /workspaces/Dreamweaver \
             --entrypoint /workspaces/Dreamweaver/scripts/test-interactive.sh \
             --user root \
-            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ needs.prepare.outputs.tag }}" \
+            "${{ needs.prepare.outputs.dev-image }}" \
             -s wayland -e "development gaming" \
             "$(printf '%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
       - name: Run actions/upload-artifact
@@ -187,7 +187,7 @@ jobs:
             -w /workspaces/Dreamweaver \
             --entrypoint /workspaces/Dreamweaver/scripts/test-install.sh \
             --user root \
-            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ needs.prepare.outputs.tag }}" \
+            "${{ needs.prepare.outputs.dev-image }}" \
             -f "${{ matrix.firmware }}" \
             "$(printf '%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
       - name: Run actions/upload-artifact

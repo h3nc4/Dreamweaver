@@ -43,9 +43,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@896daea2e2bdda063d6992243c634f156ce057ac # v1.0.0
-        with:
-          published-repo: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev
+        uses: h3nc4/dev-image-action@v2
       - name: Lint shell and prose
         run: $DEV_RUN -c './scripts/ci.sh'
       # Was its own workflow that only built the image. Here it runs against whichever
@@ -101,9 +99,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       # No dev-image-action: build-iso.sh resolves the image itself and needs a published
       # one, feeding iso.Dockerfile a repository and tag separately.
-      - name: Read the published dev image tag
-        id: dev_tag
-        run: echo "tag=$(cat .github/VERSION)" >>"$GITHUB_OUTPUT"
+      - name: Read the pinned dev image
+        id: dev_image
+        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"$GITHUB_OUTPUT"
       - name: Build image
         run: ./scripts/build-iso.sh -d "${{ matrix.distro }}"
       # cook-image.sh already ran this. Outside the build container it proves the artifact
@@ -113,5 +111,5 @@ jobs:
           docker run --rm \
             -v "${PWD}:/iso:ro" \
             --entrypoint /iso/scripts/verify-iso.sh \
-            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ steps.dev_tag.outputs.tag }}" \
+            "${{ steps.dev_image.outputs.ref }}" \
             "$(printf '/iso/%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"

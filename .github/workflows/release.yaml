@@ -40,14 +40,14 @@ jobs:
     needs: check-tag-branch
     outputs:
       version: ${{ steps.version.outputs.version }}
-      tag: ${{ steps.read_tag.outputs.tag }}
+      dev-image: ${{ steps.dev_image.outputs.ref }}
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: version
         run: echo "version=${GITHUB_REF_NAME#v}" >>"${GITHUB_OUTPUT}"
-      - id: read_tag
-        run: echo "tag=$(cat .github/VERSION)" >>"${GITHUB_OUTPUT}"
+      - id: dev_image
+        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"${GITHUB_OUTPUT}"
 
   payload:
     name: Build and Sign Payload
@@ -109,7 +109,7 @@ jobs:
           docker run --rm \
             -v "${PWD}:/iso:ro" \
             --entrypoint /iso/scripts/verify-iso.sh \
-            "${{ vars.DOCKERHUB_USERNAME }}/${{ vars.IMAGE_NAME }}-dev:${{ needs.prepare.outputs.tag }}" \
+            "${{ needs.prepare.outputs.dev-image }}" \
             "$(printf '/iso/%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
       - name: Import gpg key
         run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import

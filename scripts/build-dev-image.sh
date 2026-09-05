@@ -24,8 +24,8 @@ set -e
 
 cd "$(dirname "$0")/../"
 
-DEV_IMAGE_REPO="${DEV_IMAGE_REPO:-${DOCKERHUB_USERNAME:-h3nc4}/dreamweaver-dev}"
-dev_image_tag="$(cat .github/VERSION)"
+DEV_IMAGE_REPO="${DEV_IMAGE_REPO:-$(./scripts/devcontainer-image.sh -r)}"
+dev_image_tag="$(./scripts/devcontainer-image.sh -t)"
 
 docker build \
 	-f docker/dev.Dockerfile \
