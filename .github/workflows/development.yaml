@@ -43,7 +43,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@v2
+        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
       - name: Lint shell and prose
         run: $DEV_RUN -c './scripts/ci.sh'
       # Was its own workflow that only built the image. Here it runs against whichever
