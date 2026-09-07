@@ -21,7 +21,7 @@
 # `--output type=local,dest=.` drops in the working directory.
 
 ARG DEV_IMAGE="h3nc4/dreamweaver-dev"
-ARG DEV_IMAGE_TAG="latest"
+ARG DEV_IMAGE_TAG="latest@sha256:ab10f220af9365e64bf01cfb1cd910ccd6db62a3919ccee65994f0f94bcf43c2"
 
 FROM ${DEV_IMAGE}:${DEV_IMAGE_TAG} AS builder
 
