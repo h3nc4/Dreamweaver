@@ -211,7 +211,7 @@ echo "case: silent when preseeded, and exports the preseeded answers"
 {
 	base_seed
 	cat <<-'SEED'
-		dreamweaver dreamweaver/session select wayland
+		dreamweaver dreamweaver/session select headless
 		dreamweaver dreamweaver/extras multiselect development, gaming, virtualization
 		d-i preseed/early_command string /profile-select; /profile-select --export /tmp/p; echo "PROFILE-EXPORT: $(cat /tmp/p)" >/dev/console
 	SEED
@@ -224,7 +224,7 @@ else
 	report 0 'no dialog appeared'
 fi
 
-grep -q "PROFILE-EXPORT: DW_INSTALL_FLAGS=' -w -d -g -v'" "${OUT_DIR}/silent.txt"
+grep -q "PROFILE-EXPORT: DW_INSTALL_FLAGS=' -h -d -g -v'" "${OUT_DIR}/silent.txt"
 report $? 'the exported flags match the preseeded answers'
 
 if [ "${fail}" -ne 0 ]; then

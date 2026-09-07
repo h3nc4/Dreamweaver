@@ -48,7 +48,7 @@ die() {
 
 usage() {
 	cat >&2 <<-EOF
-		Usage: $0 [-s xorg|wayland|headless] [-e "extras"] [-f] [-o dir] [-m MiB] <image.iso>
+		Usage: $0 [-s xorg|headless] [-e "extras"] [-f] [-o dir] [-m MiB] <image.iso>
 
 		  -s  session to answer with (default: ${SESSION})
 		  -e  space separated extras to answer with, from:
@@ -98,8 +98,7 @@ done
 
 case "${SESSION}" in
 xorg) SESSION_NUM=1 ;;
-wayland) SESSION_NUM=2 ;;
-headless) SESSION_NUM=3 ;;
+headless) SESSION_NUM=2 ;;
 *) die "unknown session '${SESSION}'" ;;
 esac
 
@@ -140,11 +139,6 @@ xorg)
 	EXPECT_FLAGS=" -x${EXPECT_FLAGS}"
 	WANT_PKGS="${WANT_PKGS} xorg"
 	NOT_WANT_PKGS="${NOT_WANT_PKGS} foot"
-	;;
-wayland)
-	EXPECT_FLAGS=" -w${EXPECT_FLAGS}"
-	WANT_PKGS="${WANT_PKGS} foot"
-	NOT_WANT_PKGS="${NOT_WANT_PKGS} xorg"
 	;;
 headless)
 	EXPECT_FLAGS=" -h${EXPECT_FLAGS}"

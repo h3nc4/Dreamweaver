@@ -52,14 +52,6 @@ For a full keybind list, press `super + q` to open a terminal and type:
 $ man dwm
 ```
 
-### dwl on Wayland
-
-To autostart wayland sessions with dwl, create `.wayland` under your profile's `.config` folder
-
-```console
-$ touch ~/.config/.wayland
-```
-
 ## Flags
 
 The installer asks which profile to install. An image built from this repository shows two questions during the installation, one for the graphical session and one for the optional software sets, in whichever installer you booted — text or graphical.
@@ -76,7 +68,7 @@ Installing on an already running system, the same choices are flags:
 - **`-v`**: set up virtualization tools (QEMU, KVM, libvirt).
 - **`-h`**: headless, with no graphical session. Overrides `-x` and `-w`.
 - **`-x`**: install the Xorg session. The default when neither `-w` nor `-h` is given.
-- **`-w`**: install the Wayland session.
+- **`-w`**: install the Wayland session. The installer no longer offers this, because dwl is unmaintained upstream.
 - **`-m <mirror>`**: use a custom Debian or Devuan mirror. If omitted, the default is:
   - `http://deb.debian.org/debian/` or
   - `http://deb.devuan.org/merged/`
