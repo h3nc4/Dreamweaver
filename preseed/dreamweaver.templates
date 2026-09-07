@@ -4,14 +4,12 @@ Description: Dreamweaver
 
 Template: dreamweaver/session
 Type: select
-Choices: xorg, wayland, headless
+Choices: xorg, headless
 Default: xorg
 Description: Graphical session:
  Dreamweaver has no display manager. The session starts on login.
  .
  xorg installs dwm, st, dmenu and sxac. This is the default.
- .
- wayland installs dwl and the Wayland tools instead.
  .
  headless installs no graphical software at all.
 

@@ -142,7 +142,7 @@ jobs:
             --entrypoint /workspaces/Dreamweaver/scripts/test-interactive.sh \
             --user root \
             "${{ needs.prepare.outputs.dev-image }}" \
-            -s wayland -e "development gaming" \
+            -s headless -e "development gaming" \
             "$(printf '%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
       - name: Run actions/upload-artifact
         if: failure()
