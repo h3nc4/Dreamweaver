@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-bump-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false
     permissions:
       contents: write # pushes the pin to this pull request's branch
     steps:
