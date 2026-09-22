@@ -9,6 +9,9 @@
   "assignAutomerge": true,
   "prConcurrentLimit": 0,
   "prHourlyLimit": 0,
+  "gitIgnoredAuthors": [
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  ],
   "packageRules": [
     {
       "description": "The dev container pin belongs to CI, not to Renovate.",
