@@ -10,13 +10,13 @@
 
 Installer images are built from the current Debian and Devuan netinst releases. Both boot on BIOS and UEFI machines, and both keep the upstream signed Secure Boot chain.
 
-- [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-13.6.0-amd64.iso)
+- [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-13.7.0-amd64.iso)
 - [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-6.1.1-amd64.iso)
 
 To verify the integrity of a downloaded image, run the following:
 
 ```console
-$ iso=dreamweaver-debian-13.6.0-amd64.iso
+$ iso=dreamweaver-debian-13.7.0-amd64.iso
 $ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}"
 $ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}.asc"
 $ wget -qO- https://h3nc4.com/dreamweaver.asc | gpg --import
