@@ -72,13 +72,9 @@ dev_image_tag="$(./scripts/devcontainer-image.sh -t)"
 
 # Checked here because BuildKit's own failure says only "not found", which hints at
 # nothing.
-#
-# The manifest call keeps its output and is tried twice, because a registry that
-# refuses for a moment and an image that was never published used to end in the
-# same sentence. That happened on master at 6a3f802 on 2026-09-22, against an
-# image published since 31 August, and the advice to build it was wrong. A pull
-# request never sees this: it builds the image locally and asks no registry.
 if ! docker image inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1; then
+	# Tried twice, keeping the error: a registry refusing for a moment used to read the
+	# same as an image never published. Seen on master at 6a3f802 on 2026-09-22.
 	manifest_ok=0
 	manifest_err="$(docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" 2>&1 >/dev/null)" && manifest_ok=1
 
