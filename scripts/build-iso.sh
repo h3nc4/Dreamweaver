@@ -72,12 +72,29 @@ dev_image_tag="$(./scripts/devcontainer-image.sh -t)"
 
 # Checked here because BuildKit's own failure says only "not found", which hints at
 # nothing.
-if ! docker image inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1 &&
-	! docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1; then
-	echo "$0: ${DEV_IMAGE_REPO}:${dev_image_tag} is neither local nor published." >&2
-	echo "Build it once with:" >&2
-	echo "  ./scripts/build-dev-image.sh" >&2
-	exit 1
+#
+# The manifest call keeps its output and is tried twice, because a registry that
+# refuses for a moment and an image that was never published used to end in the
+# same sentence. That happened on master at 6a3f802 on 2026-09-22, against an
+# image published since 31 August, and the advice to build it was wrong. A pull
+# request never sees this: it builds the image locally and asks no registry.
+if ! docker image inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1; then
+	manifest_ok=0
+	manifest_err="$(docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" 2>&1 >/dev/null)" && manifest_ok=1
+
+	if [ "${manifest_ok}" -eq 0 ]; then
+		sleep 2
+		manifest_err="$(docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" 2>&1 >/dev/null)" && manifest_ok=1
+	fi
+
+	if [ "${manifest_ok}" -eq 0 ]; then
+		echo "$0: ${DEV_IMAGE_REPO}:${dev_image_tag} is not local, and the registry did not confirm it twice running." >&2
+		echo "The registry said:" >&2
+		echo "  ${manifest_err}" >&2
+		echo "Read that before building. If the image is genuinely absent, build it once with:" >&2
+		echo "  ./scripts/build-dev-image.sh" >&2
+		exit 1
+	fi
 fi
 
 for distro in ${DISTROS}; do
