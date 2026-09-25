@@ -27,6 +27,12 @@ on:
       - "master"
       - "release/*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # A pull request run is superseded by the pin push that lands seconds into it, so only one
+  # full run is paid for. A run on master queues instead, so none of them is ever cut short.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   checks:
     name: Validate Codebase
