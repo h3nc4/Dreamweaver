@@ -31,10 +31,19 @@ jobs:
     permissions:
       contents: write # pushes the pin to this pull request's branch
     steps:
+      # Pushed as the app rather than with the job token. A GITHUB_TOKEN push starts no
+      # workflow run, so the pin became a head with no checks a required check could land on.
+      - name: Mint an app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: "4811373" # the automerge app, whose key is already a secret here
+          private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.head_ref }}
+          token: ${{ steps.app-token.outputs.token }}
       - name: Take the next version from the base branch
         env:
           BASE_REF: ${{ github.event.pull_request.base.ref }}
@@ -73,7 +82,7 @@ jobs:
           fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -qm "Bump dev container to ${VERSION} [skip ci]" -- .devcontainer.json
+          git commit -qm "Bump dev container to ${VERSION}" -- .devcontainer.json
           git push origin "HEAD:${HEAD_REF}"
 
   release:
