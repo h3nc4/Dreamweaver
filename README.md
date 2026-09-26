@@ -33,7 +33,7 @@ gpg: Good signature from "Dreamweaver <me@h3nc4.com>" [unknown]
 
 ### Script
 
-Dreamweaver can also be installed on a already running Debian/Devuan machine.
+Dreamweaver can also be installed on an already running Debian or Devuan machine.
 
 ```console
 $ wget -qO- https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver.tar.gz | tar xzf -
@@ -54,9 +54,9 @@ $ man dwm
 
 ## Flags
 
-The installer asks which profile to install. An image built from this repository shows two questions during the installation, one for the graphical session and one for the optional software sets, in whichever installer you booted — text or graphical.
+An image built from this repository asks two questions during the installation, in the text and the graphical installer alike. The first picks the session, offering **Xorg** or **headless**. The second picks any optional software sets, and takes more than one.
 
-Choosing nothing installs the default: dwm on Xorg, plus the core packages.
+Answering neither installs the default: dwm on Xorg, plus the core packages.
 
 ### Script flags
 
@@ -68,12 +68,12 @@ Installing on an already running system, the same choices are flags:
 - **`-v`**: set up virtualization tools (QEMU, KVM, libvirt).
 - **`-h`**: headless, with no graphical session. Overrides `-x` and `-w`.
 - **`-x`**: install the Xorg session. The default when neither `-w` nor `-h` is given.
-- **`-w`**: install the Wayland session. The installer no longer offers this, because dwl is unmaintained upstream.
+- **`-w`**: install the Wayland session, which is dwl plus foot, wmenu, swaybg, grim and slurp. This flag still works, and the booted installer no longer offers the choice, because dwl is unmaintained upstream. Treat it as available but unsupported.
 - **`-m <mirror>`**: use a custom Debian or Devuan mirror. If omitted, the default is:
   - `http://deb.debian.org/debian/` or
   - `http://deb.devuan.org/merged/`
 
-The installation is a set of numbered steps under `install.d/`, and any of them can be run on its own. Running `./install` again is safe: each step is written so that a second run changes nothing a first run already did.
+The installation is a set of numbered steps under `install.d/`, and any of them can be run on its own. Running `./install` again is safe. Each step is written so that a second run repeats only what a first run left undone.
 
 ```console
 $ ./install --list                  # the steps, in order
@@ -82,11 +82,11 @@ $ ./install --only 070-packages     # just the packages
 $ ./install --from 120-grub         # resume from a step
 ```
 
-The package set lives in `packages/`, one file per category, with a per-distribution file alongside it where the two bases differ.
+The package set is defined in `packages/`, one file per category, with a per-distribution file alongside it where the two bases differ.
 
 ## Building
 
-The dev container holds the toolchain, so Docker is the only thing the host needs.
+The dev container provides the toolchain, so Docker is the only thing the host needs.
 
 ```console
 $ ./scripts/build-dev-image.sh      # once
@@ -97,6 +97,8 @@ $ ./scripts/build-iso.sh -d devuan  # just one
 The images are written to the repository root. Open the repository in a dev container instead to get `xorriso`, QEMU, OVMF and the linters, then see [AGENTS.md](AGENTS.md) for how the repack works and how it is tested.
 
 ## License
+
+<!-- vale off -->
 
 Dreamweaver is free software. You can redistribute and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License or (at your option) any later version.
 
