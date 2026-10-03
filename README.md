@@ -66,9 +66,8 @@ Installing on an already running system, the same choices are flags:
 - **`-d`**: install development software.
 - **`-g`**: install gaming software and permit proprietary packages.
 - **`-v`**: set up virtualization tools (QEMU, KVM, libvirt).
-- **`-h`**: headless, with no graphical session. Overrides `-x` and `-w`.
-- **`-x`**: install the Xorg session. The default when neither `-w` nor `-h` is given.
-- **`-w`**: install the Wayland session, which is dwl plus foot, wmenu, swaybg, grim and slurp. This flag still works, and the booted installer no longer offers the choice, because dwl is unmaintained upstream. Treat it as available but unsupported.
+- **`-h`**: headless, with no graphical session. Overrides `-x`.
+- **`-x`**: install the Xorg session. The default unless `-h` is given.
 - **`-m <mirror>`**: use a custom Debian or Devuan mirror. If omitted, the default is:
   - `http://deb.debian.org/debian/` or
   - `http://deb.devuan.org/merged/`
