@@ -12,13 +12,13 @@ Docker. The dev container holds the toolchain, and being asked to install `xorri
 
 ## Getting a dev container
 
-The image is `h3nc4/dreamweaver-dev:<tag>`, where the tag is whatever `.github/VERSION` contains. That image is published by pushing a `dc-v*.*.*` tag, so until the first one exists, build it locally:
+The image is the one the image key of `.devcontainer.json` pins, such as `h3nc4/dreamweaver-dev:2`. A pull request that changes the image moves that pin, and the merge publishes it. Until the pinned tag is on Docker Hub, build it locally:
 
 ```sh
 ./scripts/build-dev-image.sh
 ```
 
-Both `build-dev-image.sh` and `build-iso.sh` read the tag from `.github/VERSION`, so a locally built image under a different tag will not be found. `DEV_IMAGE_REPO` changes the name in all three build scripts, and `scripts/vm.sh` also takes `DEV_IMAGE_TAG`.
+Both `build-dev-image.sh` and `build-iso.sh` read the tag from `.devcontainer.json`, so a locally built image under a different tag will not be found. `DEV_IMAGE_REPO` changes the name in all three build scripts, and `scripts/vm.sh` also takes `DEV_IMAGE_TAG`.
 
 Opening the repository in a dev container is the usual route. Running the container by hand needs the mounts the entrypoint checks for:
 
@@ -162,11 +162,11 @@ Debian's boot menu starts speech synthesis after thirty seconds without a keypre
 | --- | --- | --- |
 | `development.yaml` | push, PR | lint and toolchain checks in the dev image, `install.d` twice per module on both bases, then both images built and their boot layout verified |
 | `boot-test.yaml` | dispatch, paths | the profile question, an interactive install over serial, then a full unattended install, 2 distributions x 2 firmwares |
-| `devcontainer.yaml` | `dc-v*.*.*` tag | publishes the dev image, then commits the new tag back |
+| `devcontainer.yaml` | PR, push to master, paths | moves the dev image pin in the PR, then publishes the pinned image after the merge |
 | `release.yaml` | `v*.*.*` tag | payload and both images, verified then signed, then released |
 | `security.yaml` | push, PR, daily | `actionlint` over the workflows, Trivy over the dev image |
 
-CI runs inside the dev image, so a check that passes locally passes there. Changing `docker/dev.Dockerfile` means the published image no longer matches what the tree expects: `development.yaml` builds a candidate for that PR, but a later push that leaves the Dockerfile alone pulls the published image again. Push a `dc-v*.*.*` tag to publish the new one.
+CI runs inside the dev image, so a check that passes locally passes there. Changing `docker/dev.Dockerfile` means the published image no longer matches what the tree expects: `development.yaml` builds a candidate for that PR, and `devcontainer.yaml` moves the pin in that same PR. The merge publishes the new image.
 
 Actions are pinned by commit SHA, and Renovate auto-merges minor, patch, pin and digest updates.
 
