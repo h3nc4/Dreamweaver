@@ -46,7 +46,7 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0
       - name: Run h3nc4/dev-image-pin-action/bump
-        uses: h3nc4/dev-image-pin-action/bump@f96fe22140d6c164ccef28761b15a397cffef4fd # v1
+        uses: h3nc4/dev-image-pin-action/bump@5285ae65244f774826b618fa3aed08d257ac06e8 # v1
         with:
           image-inputs: docker/dev.Dockerfile scripts/entrypoint.sh scripts/switch-user.sh
 
@@ -70,6 +70,6 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-pin-action/release
-        uses: h3nc4/dev-image-pin-action/release@f96fe22140d6c164ccef28761b15a397cffef4fd # v1
+        uses: h3nc4/dev-image-pin-action/release@5285ae65244f774826b618fa3aed08d257ac06e8 # v1
         with:
           image-inputs: docker/dev.Dockerfile scripts/entrypoint.sh scripts/switch-user.sh
