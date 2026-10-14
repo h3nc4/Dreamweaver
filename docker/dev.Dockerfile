@@ -32,7 +32,7 @@ ARG DEVUAN_CD_FINGERPRINT="185E56E98DA03B6CEADAC81983161D4768BE620B"
 
 ################################################################################
 # Debian main stage
-FROM debian:trixie@sha256:f324c7ff54321e8d9c588493a20244965938ce0aa50bbd1022d38010e9ffc4b1 AS main
+FROM debian:trixie@sha256:181ecf074fdc824a42be4f84a7be2eba33c4ac298ae1ab15a4e69ed052bd9ec0 AS main
 ARG USER
 ARG UID
 ARG GID
