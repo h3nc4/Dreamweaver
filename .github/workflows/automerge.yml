@@ -23,6 +23,6 @@ jobs:
       pull-requests: write
     steps:
       - name: Run h3nc4/renovate-automerge-action
-        uses: h3nc4/renovate-automerge-action@7fe8848099599af579342387aeb1d05bc8f86e94 # v1
+        uses: h3nc4/renovate-automerge-action@28ca9fc5ed283d07f1836f2d01457971648c04b7 # v1
         with:
           private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}

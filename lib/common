@@ -145,7 +145,7 @@ export DW_HOME
 # Feature flags
 #
 # Set by the driver, or from the environment: DW_DEV=1 ./install.d/200-dev-extras
-export DW_OPT DW_DEV DW_GAMES DW_VIRT DW_XORG DW_WAYLAND DW_HEADLESS DW_GUI
+export DW_OPT DW_DEV DW_GAMES DW_VIRT DW_XORG DW_HEADLESS DW_GUI
 
 enabled() {
 	case "$1" in
@@ -219,7 +219,6 @@ dw_categories() {
 	printf 'core\n'
 	enabled "${DW_GUI}" && printf 'gui\n'
 	enabled "${DW_XORG}" && printf 'xorg\n'
-	enabled "${DW_WAYLAND}" && printf 'wayl\n'
 	enabled "${DW_OPT}" && printf 'opt\n'
 	enabled "${DW_DEV}" && printf 'dev\n'
 	enabled "${DW_GAMES}" && printf 'games\n'

@@ -22,7 +22,6 @@ command -v weave >/dev/null 2>&1 || skip 'the dotfiles do not provide weave'
 
 set --
 enabled "${DW_XORG}" && set -- "$@" dwm st dmenu sxac
-enabled "${DW_WAYLAND}" && set -- "$@" dwl
 [ "$#" -gt 0 ] || skip 'no graphical session selected'
 
 for _p in "$@"; do

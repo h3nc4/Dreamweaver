@@ -73,7 +73,7 @@ done
 
 case "${DISTRO}" in
 debian)
-	VERSION="${VERSION:-13.6.0}"
+	VERSION="${VERSION:-13.7.0}"
 	BASE_ISO="debian-${VERSION}-amd64-netinst.iso"
 	BASE_URL="https://cdimage.debian.org/debian-cd/${VERSION}/amd64/iso-cd"
 	SUMS='SHA256SUMS'

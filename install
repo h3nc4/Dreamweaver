@@ -45,16 +45,15 @@ DRY=''
 
 usage() {
 	cat >&2 <<-EOF
-		Usage: $0 [-o] [-d] [-g] [-v] [-h] [-x] [-w] [-m <mirror>]
+		Usage: $0 [-o] [-d] [-g] [-v] [-h] [-x] [-m <mirror>]
 		          [--list] [--dry-run] [--only <module>] [--from <module>] [--skip <module>]
 
 		  -o             Include extra software
 		  -d             Include development software
 		  -g             Include gaming software
 		  -v             Include virtualization software
-		  -h             Headless only (disables -x and -w)
-		  -x             Include Xorg (the default when neither -w nor -h is given)
-		  -w             Include Wayland
+		  -h             Headless only (disables -x)
+		  -x             Include Xorg (the default unless -h is given)
 		  -m <mirror>    Use this apt mirror
 
 		  --list         Show the modules in run order and exit
@@ -99,7 +98,7 @@ done
 set -- ${ARGS}
 
 OPTIND=1
-while getopts 'odgvhxwm:' opt; do
+while getopts 'odgvhxm:' opt; do
 	case "${opt}" in
 	o) DW_OPT=1 ;;
 	d) DW_DEV=1 ;;
@@ -107,27 +106,25 @@ while getopts 'odgvhxwm:' opt; do
 	v) DW_VIRT=1 ;;
 	h) DW_HEADLESS=1 ;;
 	x) DW_XORG=1 ;;
-	w) DW_WAYLAND=1 ;;
 	m) DW_MIRROR="${OPTARG}" ;;
 	*) usage ;;
 	esac
 done
 shift $((OPTIND - 1))
 
-if enabled "${DW_HEADLESS}" && { enabled "${DW_XORG}" || enabled "${DW_WAYLAND}"; }; then
-	warn '-h overrides -x and -w; the graphical options are ignored'
+if enabled "${DW_HEADLESS}" && enabled "${DW_XORG}"; then
+	warn '-h overrides -x, which is ignored'
 fi
 
 if enabled "${DW_HEADLESS}"; then
 	DW_XORG=''
-	DW_WAYLAND=''
 	DW_GUI=''
 else
-	enabled "${DW_WAYLAND}" || DW_XORG=1
+	DW_XORG=1
 	DW_GUI=1
 fi
 
-export DW_OPT DW_DEV DW_GAMES DW_VIRT DW_XORG DW_WAYLAND DW_HEADLESS DW_GUI DW_MIRROR
+export DW_OPT DW_DEV DW_GAMES DW_VIRT DW_XORG DW_HEADLESS DW_GUI DW_MIRROR
 
 ################################################################################
 # Module selection

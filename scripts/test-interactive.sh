@@ -138,11 +138,10 @@ case "${SESSION}" in
 xorg)
 	EXPECT_FLAGS=" -x${EXPECT_FLAGS}"
 	WANT_PKGS="${WANT_PKGS} xorg"
-	NOT_WANT_PKGS="${NOT_WANT_PKGS} foot"
 	;;
 headless)
 	EXPECT_FLAGS=" -h${EXPECT_FLAGS}"
-	NOT_WANT_PKGS="${NOT_WANT_PKGS} xorg foot firefox"
+	NOT_WANT_PKGS="${NOT_WANT_PKGS} xorg firefox"
 	;;
 *) ;;
 esac

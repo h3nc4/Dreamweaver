@@ -72,12 +72,25 @@ dev_image_tag="$(./scripts/devcontainer-image.sh -t)"
 
 # Checked here because BuildKit's own failure says only "not found", which hints at
 # nothing.
-if ! docker image inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1 &&
-	! docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1; then
-	echo "$0: ${DEV_IMAGE_REPO}:${dev_image_tag} is neither local nor published." >&2
-	echo "Build it once with:" >&2
-	echo "  ./scripts/build-dev-image.sh" >&2
-	exit 1
+if ! docker image inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" >/dev/null 2>&1; then
+	# Tried twice, keeping the error: a registry refusing for a moment used to read the
+	# same as an image never published. Seen on master at 6a3f802 on 2026-09-22.
+	manifest_ok=0
+	manifest_err="$(docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" 2>&1 >/dev/null)" && manifest_ok=1
+
+	if [ "${manifest_ok}" -eq 0 ]; then
+		sleep 2
+		manifest_err="$(docker manifest inspect "${DEV_IMAGE_REPO}:${dev_image_tag}" 2>&1 >/dev/null)" && manifest_ok=1
+	fi
+
+	if [ "${manifest_ok}" -eq 0 ]; then
+		echo "$0: ${DEV_IMAGE_REPO}:${dev_image_tag} is not local, and the registry did not confirm it twice running." >&2
+		echo "The registry said:" >&2
+		echo "  ${manifest_err}" >&2
+		echo "Read that before building. If the image is genuinely absent, build it once with:" >&2
+		echo "  ./scripts/build-dev-image.sh" >&2
+		exit 1
+	fi
 fi
 
 for distro in ${DISTROS}; do
