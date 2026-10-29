@@ -50,7 +50,7 @@
       "extensions": [
         "timonwong.shellcheck",
         "foxundermoon.shell-format",
-        "DavidAnson.vscode-markdownlint",
+        "rvben.rumdl",
         "ms-vscode-remote.vscode-remote-extensionpack",
         "ms-azuretools.vscode-docker",
         "donjayamanne.githistory",
