@@ -95,19 +95,24 @@ jobs:
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - name: Run docker/setup-buildx-action
-        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+        with:
+          fetch-depth: 0 # dev-image diffs against the base to spot image changes
       # Authenticated pulls, which anonymous rate limits can refuse.
       - name: Run docker/login-action
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      # No dev-image-action: build-iso.sh resolves the image itself and needs a published
-      # one, feeding iso.Dockerfile a repository and tag separately.
+      - name: Run h3nc4/dev-image-action
+        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
+      # A pull request pins a tag published only after its merge. The candidate takes that
+      # name here, and no buildx builder runs, whose container would not see a local image.
       - name: Read the pinned dev image
         id: dev_image
-        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"$GITHUB_OUTPUT"
+        run: |
+          ref="$(./scripts/devcontainer-image.sh)"
+          docker tag "${DEV_IMAGE}" "${ref}"
+          echo "ref=${ref}" >>"${GITHUB_OUTPUT}"
       - name: Build image
         run: ./scripts/build-iso.sh -d "${{ matrix.distro }}"
       # cook-image.sh already ran this. Outside the build container it proves the artifact

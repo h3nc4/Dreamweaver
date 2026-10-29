@@ -45,18 +45,19 @@ jobs:
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - id: dev_image
-        run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"${GITHUB_OUTPUT}"
+        with:
+          fetch-depth: 0 # dev-image diffs against the base to spot image changes
       - name: Run docker/login-action
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # Scans the candidate when the change touches the image, the published pin otherwise.
+      - name: Run h3nc4/dev-image-action
+        uses: h3nc4/dev-image-action@1e296b26a16b3e20db153e32b963d953a41ef1a1 # v2
       # Every release is built with this toolchain, so a CVE here is a supply-chain
       # problem for the published images.
       - name: Scan the dev image
-        env:
-          IMAGE: ${{ steps.dev_image.outputs.ref }}
         run: |
           docker run --rm \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -66,7 +67,7 @@ jobs:
               --ignore-unfixed \
               --format sarif \
               --output /out/trivy.sarif \
-              "${IMAGE}"
+              "${DEV_IMAGE}"
       - name: Run github/codeql-action/upload-sarif
         uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
         with:
