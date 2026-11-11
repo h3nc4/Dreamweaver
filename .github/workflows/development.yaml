@@ -44,7 +44,7 @@ jobs:
           fetch-depth: 0 # dev-image diffs against the base to spot image changes
       # Authenticated pulls, which anonymous rate limits can refuse.
       - name: Run docker/login-action
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -99,7 +99,7 @@ jobs:
           fetch-depth: 0 # dev-image diffs against the base to spot image changes
       # Authenticated pulls, which anonymous rate limits can refuse.
       - name: Run docker/login-action
-        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
