@@ -39,6 +39,11 @@
         "major"
       ],
       "automerge": false
+    },
+    {
+      "description": "Majors never automerge, so rebase them only on a conflict rather than rerunning CI each time main moves",
+      "matchUpdateTypes": ["major"],
+      "rebaseWhen": "conflicted"
     }
   ]
 }
