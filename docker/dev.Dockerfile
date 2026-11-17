@@ -41,6 +41,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq
 
+# The base image lags behind Debian security fixes. Upgrade its own packages
+# before installing more.
+RUN apt-get upgrade -y -qq
+
 # Gen locale
 RUN apt-get install --no-install-recommends -y -qq locales && \
   echo "en_US.UTF-8 UTF-8" >/etc/locale.gen && \
