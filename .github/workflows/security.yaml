@@ -54,7 +54,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       # Scans the candidate when the change touches the image, the published pin otherwise.
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@24e5d67fa210ea49d6ef24c07d7f8f536fe1bb7b # v3
+        uses: h3nc4/dev-image-action@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
       # Every release is built with this toolchain, so a CVE here is a supply-chain
       # problem for the published images.
       - name: Scan the dev image
