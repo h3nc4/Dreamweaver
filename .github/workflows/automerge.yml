@@ -15,7 +15,7 @@ jobs:
   automerge:
     name: Merge if CI passed
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
+      contains(fromJSON('["success", "failure", "timed_out"]'), github.event.workflow_run.conclusion) &&
       github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
