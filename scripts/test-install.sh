@@ -176,6 +176,21 @@ screenshot() {
 		timeout 10 socat - "unix-connect:${OUT_DIR}/$1.monitor" >/dev/null 2>&1 || :
 }
 
+# A failed late-command prints the target's install log between these markers, then d-i
+# waits at its error dialog until the timeout. The watcher quits QEMU once the log has arrived.
+LOG_BEGIN='DREAMWEAVER-INSTALL-LOG-BEGIN'
+LOG_END='DREAMWEAVER-INSTALL-LOG-END'
+
+watch_install() {
+	while sleep 10; do
+		grep -q "${LOG_END}" "${OUT_DIR}/$1.serial.log" 2>/dev/null || continue
+		screenshot "$1"
+		printf 'quit\n' |
+			timeout 10 socat - "unix-connect:${OUT_DIR}/$1.monitor" >/dev/null 2>&1 || :
+		return 0
+	done
+}
+
 test_firmware() {
 	_fw="$1"
 	echo "################################################################"
@@ -192,12 +207,26 @@ test_firmware() {
 
 	# -no-reboot turns the installer's final reboot into a clean exit. console=ttyS0 puts
 	# d-i on the serial log, so a failure leaves something to read.
-	if ! run_qemu "${_fw}" "${INSTALL_TIMEOUT}" "${_fw}-install" \
+	: >"${OUT_DIR}/${_fw}-install.serial.log"
+	watch_install "${_fw}-install" &
+	_watcher=$!
+	_installed=0
+	run_qemu "${_fw}" "${INSTALL_TIMEOUT}" "${_fw}-install" \
 		-kernel "${OUT_DIR}/kernel" \
 		-initrd "${OUT_DIR}/initrd.gz" \
 		-append 'console=ttyS0,115200n8 DEBIAN_FRONTEND=text TERM=linux' \
 		-drive "file=${ISO},format=raw,if=none,id=cd,media=cdrom,readonly=on" \
-		-device ide-cd,drive=cd; then
+		-device ide-cd,drive=cd || _installed=$?
+	kill "${_watcher}" 2>/dev/null || :
+
+	if grep -q "${LOG_END}" "${OUT_DIR}/${_fw}-install.serial.log"; then
+		sed -n "/${LOG_BEGIN}/,/${LOG_END}/p" "${OUT_DIR}/${_fw}-install.serial.log" |
+			tr -d '\r' >"${OUT_DIR}/${_fw}-dreamweaver-install.log"
+		echo "# ${_fw}: late-command failed, its log follows" >&2
+		tail -n 60 "${OUT_DIR}/${_fw}-dreamweaver-install.log" >&2
+		die "${_fw}: the late-command failed. See ${OUT_DIR}/${_fw}-dreamweaver-install.log"
+	fi
+	if [ "${_installed}" -ne 0 ]; then
 		screenshot "${_fw}-install"
 		die "${_fw}: the installer did not finish. See ${OUT_DIR}/${_fw}-install.*"
 	fi
