@@ -53,7 +53,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action/share
         id: dev
-        uses: h3nc4/dev-image-action/share@24e5d67fa210ea49d6ef24c07d7f8f536fe1bb7b # v3
+        uses: h3nc4/dev-image-action/share@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
 
   checks:
     name: Validate Codebase
@@ -69,7 +69,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@24e5d67fa210ea49d6ef24c07d7f8f536fe1bb7b # v3
+        uses: h3nc4/dev-image-action@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
         with:
           image: ${{ needs.dev-image.outputs.image }}
           artifact: ${{ needs.dev-image.outputs.artifact }}
@@ -127,7 +127,7 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Run h3nc4/dev-image-action
-        uses: h3nc4/dev-image-action@24e5d67fa210ea49d6ef24c07d7f8f536fe1bb7b # v3
+        uses: h3nc4/dev-image-action@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
         with:
           image: ${{ needs.dev-image.outputs.image }}
           artifact: ${{ needs.dev-image.outputs.artifact }}
@@ -158,6 +158,6 @@ jobs:
       actions: write
     steps:
       - name: Run h3nc4/dev-image-action/cleanup
-        uses: h3nc4/dev-image-action/cleanup@24e5d67fa210ea49d6ef24c07d7f8f536fe1bb7b # v3
+        uses: h3nc4/dev-image-action/cleanup@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
         with:
           artifact: ${{ needs.dev-image.outputs.artifact }}
