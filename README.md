@@ -105,6 +105,17 @@ $ ./install --from 120-grub         # resume from a step
 
 The package set is defined in `packages/`, one file per category, with a per-distribution file alongside it where the two bases differ.
 
+## Debian packages
+
+Dreamweaver is also built as Debian packages, from the sources in `deb/`:
+
+- **`dreamweaver-base`**: the `os-release` identity, `/etc/issue` and the GRUB defaults. It diverts the files `base-files` owns, so removing it brings them back.
+- **`dreamweaver-branding`**: the wallpaper and the GRUB background.
+- **`dreamweaver-archive-keyring`** and **`dreamweaver-apt-source`**: the signing key and the sources entry for `apt.h3nc4.com`.
+- **`dreamweaver-<set>`**: one metapackage per file in `packages/`, which pulls in that set.
+
+The packages are not published yet, so the images and the script remain the way to install Dreamweaver.
+
 ## Building
 
 The dev container provides the toolchain, so Docker is the only thing the host needs.
@@ -113,9 +124,10 @@ The dev container provides the toolchain, so Docker is the only thing the host n
 $ ./scripts/build-dev-image.sh      # once
 $ ./scripts/build-iso.sh            # both images
 $ ./scripts/build-iso.sh -d devuan  # just one
+$ ./scripts/build-debs.sh           # the Debian packages, in the dev container
 ```
 
-The images are written to the repository root. Open the repository in a dev container instead to get `xorriso`, QEMU, OVMF and the linters, then see [AGENTS.md](AGENTS.md) for how the repack works and how it is tested.
+The images are written to the repository root and the packages to `dist/`. Open the repository in a dev container instead to get `xorriso`, QEMU, OVMF, `lintian` and the linters, then see [docs/development.md](docs/development.md) for how to work on it.
 
 ## License
 
