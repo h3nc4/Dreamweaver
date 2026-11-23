@@ -24,7 +24,7 @@ Installer images are built from the current Debian and Devuan netinst releases, 
 - [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-amd64.iso)
 - [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-amd64.iso)
 
-The release page also has the same images under versioned names, such as `dreamweaver-3.1.0-debian-amd64.iso`, and a list of every package an install gets with a link to its source, such as `dreamweaver-3.1.0-debian-packages.md`.
+The release page also has the same images under versioned names, such as `dreamweaver-4.0.0-debian-amd64.iso`, and a list of every package an install gets with a link to its source, such as `dreamweaver-4.0.0-debian-packages.md`.
 
 To verify the integrity of a downloaded image, run the following:
 
