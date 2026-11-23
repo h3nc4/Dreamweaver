@@ -1,0 +1,2 @@
+# preinst writes os-release rather than shipping it, since ID_LIKE depends on the base.
+dreamweaver-base: diversion-for-unknown-file usr/lib/os-release [preinst:*]

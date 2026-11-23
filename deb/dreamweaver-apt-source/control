@@ -1,0 +1,8 @@
+Section: misc
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://github.com/h3nc4/Dreamweaver
+Depends: dreamweaver-archive-keyring (= @VERSION@)
+Description: apt.h3nc4.com sources entry
+ Adds apt.h3nc4.com, the repository Dreamweaver packages come from, as a deb822
+ sources entry that trusts only the key in dreamweaver-archive-keyring.

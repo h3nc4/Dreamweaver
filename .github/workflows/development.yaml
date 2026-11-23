@@ -76,6 +76,8 @@ jobs:
           base-sha: ""
       - name: Lint shell and prose
         run: $DEV_RUN -c './scripts/ci.sh'
+      - name: Build and lint packages
+        run: $DEV_RUN -c './scripts/build-debs.sh && lintian --pedantic dist/*.deb'
       # Was its own workflow that only built the image. Here it runs against whichever
       # image the suite uses, candidate included, and the signing keys are fetched at
       # image build time, so that failure surfaces before a release.
@@ -83,7 +85,7 @@ jobs:
         run: |
           $DEV_RUN -c 'set -e
             for tool in xorriso cpio gzip curl gpg shellcheck shfmt \
-                        qemu-system-x86_64 qemu-img socat websockify; do
+                        qemu-system-x86_64 qemu-img socat websockify dpkg-deb lintian; do
               command -v "${tool}" >/dev/null || { echo "missing ${tool}" >&2; exit 1; }
             done
             test -s "${DREAMWEAVER_KEYS}/debian.asc"

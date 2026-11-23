@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+
+# GRUB reads its background before an encrypted root is unlocked, so it gets a copy in /boot.
+case "$1" in
+configure)
+	if [ -d /boot/grub ]; then
+		cp -f /usr/share/images/dreamweaver/grub.jpg /boot/grub/dreamweaver.jpg
+	fi
+	;;
+*) ;;
+esac

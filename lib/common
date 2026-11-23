@@ -96,8 +96,12 @@ fi
 
 dw_distro() {
 	if [ -r /etc/os-release ]; then
+		# dreamweaver-base sets ID=dreamweaver and keeps the base first in ID_LIKE.
 		# shellcheck disable=SC1091
-		(. /etc/os-release && printf '%s\n' "${ID:-debian}")
+		(. /etc/os-release && case "${ID:-}" in
+		dreamweaver) _like="${ID_LIKE:-debian}" && printf '%s\n' "${_like%% *}" ;;
+		*) printf '%s\n' "${ID:-debian}" ;;
+		esac)
 	else
 		printf 'debian\n'
 	fi

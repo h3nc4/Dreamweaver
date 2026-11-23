@@ -1,0 +1,27 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+
+case "$1" in
+remove | abort-install | disappear)
+	rm -f /usr/lib/os-release
+	dpkg-divert --package dreamweaver-base --remove --rename \
+		--divert /usr/lib/os-release.base-files /usr/lib/os-release
+	dpkg-divert --package dreamweaver-base --remove --rename \
+		--divert /etc/issue.base-files /etc/issue
+	dpkg-divert --package dreamweaver-base --remove --rename \
+		--divert /etc/issue.net.base-files /etc/issue.net
+	;;
+purge)
+	# The GRUB drop-in is a conffile, so only a purge takes the name out of the menu.
+	if [ -d /boot/grub ] && command -v update-grub >/dev/null 2>&1; then
+		update-grub
+	fi
+	;;
+*) ;;
+esac

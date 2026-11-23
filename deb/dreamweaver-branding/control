@@ -1,0 +1,8 @@
+Section: misc
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://github.com/h3nc4/Dreamweaver
+Description: Dreamweaver wallpaper and boot menu background
+ Installs the Dreamweaver wallpaper under /usr/share/backgrounds/dreamweaver and
+ the GRUB background under /usr/share/images/dreamweaver, with a copy in
+ /boot/grub where GRUB can read it before an encrypted root is unlocked.

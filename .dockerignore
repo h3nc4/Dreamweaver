@@ -24,6 +24,7 @@
 # Rebuilt in the container by scripts/make-tar.sh, so the host's copy is only noise.
 dreamweaver.tar.gz
 dreamweaver.tar.gz.asc
+dist/
 
 # Boot test leftovers
 *.qcow2

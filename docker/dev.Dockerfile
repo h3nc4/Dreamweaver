@@ -103,6 +103,10 @@ RUN apt-get install --no-install-recommends -y -qq \
   shellcheck \
   shfmt
 
+# Checks what scripts/build-debs.sh builds. dpkg-deb itself comes with the base image.
+RUN apt-get install --no-install-recommends -y -qq \
+  lintian
+
 # Docker outside of Docker, used by scripts/build-iso.sh
 RUN apt-get install --no-install-recommends -y -qq \
   docker-buildx \

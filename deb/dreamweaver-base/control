@@ -1,0 +1,11 @@
+Section: misc
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://github.com/h3nc4/Dreamweaver
+Depends: dreamweaver-apt-source (= @VERSION@), dreamweaver-branding (= @VERSION@)
+Description: Dreamweaver system identity
+ Makes the system identify as Dreamweaver: os-release, the login banners in
+ /etc/issue and /etc/issue.net, and the GRUB distributor name and boot menu.
+ .
+ The base-files originals are diverted rather than replaced, so removing this
+ package restores them.

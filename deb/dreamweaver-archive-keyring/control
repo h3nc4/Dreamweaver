@@ -1,0 +1,7 @@
+Section: misc
+Priority: optional
+Multi-Arch: foreign
+Homepage: https://github.com/h3nc4/Dreamweaver
+Description: apt.h3nc4.com signing key
+ Installs the public key that signs apt.h3nc4.com, the repository Dreamweaver
+ packages come from, under /usr/share/keyrings.

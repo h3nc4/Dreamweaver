@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver, and is free software under the GNU General Public
+# License version 3 or later. See the LICENSE file for details.
+
+set -e
+
+# base-files keeps upgrading these under the diverted names, and removal renames them back.
+# os-release is written here rather than shipped, since ID_LIKE depends on which base this is.
+
+case "$1" in
+install | upgrade)
+	dpkg-divert --package dreamweaver-base --add --rename \
+		--divert /usr/lib/os-release.base-files /usr/lib/os-release
+	dpkg-divert --package dreamweaver-base --add --rename \
+		--divert /etc/issue.base-files /etc/issue
+	dpkg-divert --package dreamweaver-base --add --rename \
+		--divert /etc/issue.net.base-files /etc/issue.net
+
+	# Devuan's own ID_LIKE is debian, so a Devuan system reads as "devuan debian".
+	like="$(. /usr/lib/os-release.base-files && echo "${ID:-} ${ID_LIKE:-}" | sed 's/^ *//; s/ *$//')"
+	codename="$(. /usr/lib/os-release.base-files && echo "${VERSION_CODENAME:-}")"
+	{
+		echo 'PRETTY_NAME="Dreamweaver @VERSION@"'
+		echo 'NAME="Dreamweaver"'
+		echo 'VERSION_ID="@VERSION@"'
+		echo 'VERSION="@VERSION@"'
+		[ -z "${codename}" ] || echo "VERSION_CODENAME=${codename}"
+		echo 'ID=dreamweaver'
+		echo "ID_LIKE=\"${like}\""
+		echo 'HOME_URL="https://github.com/h3nc4/Dreamweaver"'
+		echo 'SUPPORT_URL="https://github.com/h3nc4/Dreamweaver"'
+		echo 'BUG_REPORT_URL="https://github.com/h3nc4/Dreamweaver/issues"'
+	} >/usr/lib/os-release.dreamweaver-new
+	mv -f /usr/lib/os-release.dreamweaver-new /usr/lib/os-release
+	;;
+*) ;;
+esac

@@ -30,6 +30,8 @@ trap 'rm -f "${TMPFILE}"' EXIT
 tar --transform 's,^\./,Dreamweaver/,' -czf "${TMPFILE}" \
 	--exclude='./.git*' \
 	--exclude='./scratch' \
+	--exclude='./deb' \
+	--exclude='./dist' \
 	--exclude='*.iso' \
 	--exclude='*.iso.asc' \
 	--exclude='*.qcow2' \
