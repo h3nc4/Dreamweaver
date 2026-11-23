@@ -30,7 +30,8 @@ set -e
 cd "$(dirname "$0")/../"
 
 DISTRO='debian'
-VERSION=
+BASE_VERSION=
+PRINT_BASE=
 UNATTENDED=
 EMBED_PAYLOAD=y
 VERIFY_SIG=y
@@ -42,10 +43,11 @@ die() {
 
 usage() {
 	cat >&2 <<-EOF
-		Usage: $0 [-d debian|devuan] [-V version] [-t] [-n] [-K]
+		Usage: $0 [-d debian|devuan] [-V version] [-t] [-n] [-K] [-P]
 
 		  -d  base distribution to repack (default: ${DISTRO})
 		  -V  override the base image version
+		  -P  print the base image version and exit
 		  -t  seed the unattended test preseed instead of the interactive one
 		  -n  do not embed the payload; the installed system downloads it instead
 		  -K  skip signature verification of the upstream checksum file
@@ -54,10 +56,11 @@ usage() {
 }
 
 OPTIND=1
-while getopts "d:V:tnK" opt; do
+while getopts "d:V:tnKP" opt; do
 	case "${opt}" in
 	d) DISTRO="${OPTARG}" ;;
-	V) VERSION="${OPTARG}" ;;
+	V) BASE_VERSION="${OPTARG}" ;;
+	P) PRINT_BASE=y ;;
 	t) UNATTENDED=y ;;
 	n) EMBED_PAYLOAD= ;;
 	K) VERIFY_SIG= ;;
@@ -66,23 +69,18 @@ while getopts "d:V:tnK" opt; do
 done
 shift $((OPTIND - 1))
 
-for tool in xorriso cpio gzip curl gpg; do
-	command -v "${tool}" >/dev/null 2>&1 ||
-		die "${tool} not found. Run this inside the dev container."
-done
-
 case "${DISTRO}" in
 debian)
-	VERSION="${VERSION:-13.7.0}"
-	BASE_ISO="debian-${VERSION}-amd64-netinst.iso"
-	BASE_URL="https://cdimage.debian.org/debian-cd/${VERSION}/amd64/iso-cd"
+	BASE_VERSION="${BASE_VERSION:-13.7.0}"
+	BASE_ISO="debian-${BASE_VERSION}-amd64-netinst.iso"
+	BASE_URL="https://cdimage.debian.org/debian-cd/${BASE_VERSION}/amd64/iso-cd"
 	SUMS='SHA256SUMS'
 	SUMS_SIG='SHA256SUMS.sign'
 	;;
 devuan)
-	VERSION="${VERSION:-6.1.1}"
+	BASE_VERSION="${BASE_VERSION:-6.1.1}"
 	CODENAME='excalibur'
-	BASE_ISO="devuan_${CODENAME}_${VERSION}_amd64_netinstall.iso"
+	BASE_ISO="devuan_${CODENAME}_${BASE_VERSION}_amd64_netinstall.iso"
 	BASE_URL="https://files.devuan.org/devuan_${CODENAME}/installer-iso"
 	SUMS='SHA256SUMS.txt'
 	SUMS_SIG='SHA256SUMS.txt.asc'
@@ -92,7 +90,18 @@ devuan)
 	;;
 esac
 
-OUT_ISO="dreamweaver-${DISTRO}-${VERSION}-amd64.iso"
+if [ -n "${PRINT_BASE}" ]; then
+	echo "${BASE_VERSION}"
+	exit 0
+fi
+
+for tool in xorriso cpio gzip curl gpg; do
+	command -v "${tool}" >/dev/null 2>&1 ||
+		die "${tool} not found. Run this inside the dev container."
+done
+
+[ -s VERSION ] || die "no VERSION file at the repository root"
+OUT_ISO="dreamweaver-$(cat VERSION)-${DISTRO}-amd64.iso"
 CACHE="${DREAMWEAVER_CACHE:-${PWD}}"
 KEYS="${DREAMWEAVER_KEYS:-/usr/local/share/dreamweaver/keys}"
 
@@ -154,8 +163,12 @@ EXPECTED="$(awk -v f="${BASE_ISO}" '$2 == f || $2 == "*" f {print $1}' "${WORK}/
 SEED="${WORK}/seed"
 mkdir -p "${SEED}" "${WORK}/in"
 
+SEED_FILES='preseed.cfg late-command profile-select dreamweaver.templates'
 if [ -n "${UNATTENDED}" ]; then
 	cat preseed/unattended.cfg "preseed/mirror-${DISTRO}.cfg" >"${SEED}/preseed.cfg"
+	cp preseed/list-packages "${SEED}/list-packages"
+	chmod +x "${SEED}/list-packages"
+	SEED_FILES="${SEED_FILES} list-packages"
 else
 	cp preseed/default.cfg "${SEED}/preseed.cfg"
 fi
@@ -213,8 +226,8 @@ while read -r path; do
 	chmod u+w "${local_gz}"
 
 	gunzip "${local_gz}"
-	(cd "${SEED}" && printf '%s\n' \
-		preseed.cfg late-command profile-select dreamweaver.templates |
+	# shellcheck disable=SC2086
+	(cd "${SEED}" && printf '%s\n' ${SEED_FILES} |
 		cpio --quiet -H newc -o -A -F "${local_gz%.gz}")
 	gzip -9n "${local_gz%.gz}"
 

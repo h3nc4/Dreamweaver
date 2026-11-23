@@ -181,6 +181,11 @@ screenshot() {
 LOG_BEGIN='DREAMWEAVER-INSTALL-LOG-BEGIN'
 LOG_END='DREAMWEAVER-INSTALL-LOG-END'
 
+# On success the seed prints the profile and the installed package list between these, and
+# the END line gives the count, so a line lost to a console redraw fails the test.
+PKGS_BEGIN='DREAMWEAVER-PACKAGES-BEGIN'
+PKGS_END='DREAMWEAVER-PACKAGES-END'
+
 watch_install() {
 	while sleep 10; do
 		grep -q "${LOG_END}" "${OUT_DIR}/$1.serial.log" 2>/dev/null || continue
@@ -189,6 +194,28 @@ watch_install() {
 			timeout 10 socat - "unix-connect:${OUT_DIR}/$1.monitor" >/dev/null 2>&1 || :
 		return 0
 	done
+}
+
+# Writes <firmware>-packages.txt, in the format package-sources.sh reads, and its table.
+read_packages() {
+	_log="${OUT_DIR}/$1-install.serial.log"
+	_txt="${OUT_DIR}/$1-packages.txt"
+	grep -q "${PKGS_END}" "${_log}" ||
+		die "$1: the installer printed no package list. See ${_log}"
+
+	sed -n "/${PKGS_BEGIN}/,/${PKGS_END}/p" "${_log}" | tr -d '\r' >"${OUT_DIR}/$1-packages.raw"
+	grep -E '^ii +[^ ]+ [^ ]+ [^ ]+ [^ ]+( [^ ]*)?$' "${OUT_DIR}/$1-packages.raw" >"${_txt}" || :
+
+	_want="$(sed -n "s/^${PKGS_END} \([0-9]*\)\$/\1/p" "${OUT_DIR}/$1-packages.raw")"
+	_got="$(wc -l <"${_txt}")"
+	if [ -z "${_want}" ] || [ "${_want}" -ne "${_got}" ]; then
+		die "$1: read ${_got} packages, the installer listed ${_want:-an unknown number}. See ${OUT_DIR}/$1-packages.raw"
+	fi
+
+	_flags="$(sed -n "s/^DW_INSTALL_FLAGS='\(.*\)'\$/\1/p" "${OUT_DIR}/$1-packages.raw")"
+	scripts/package-sources.sh -t "Packages installed from $(basename "${ISO}")" \
+		-p "${_flags}" "${_txt}" >"${OUT_DIR}/$1-packages.md"
+	echo "# $1: ${_got} packages, listed in ${OUT_DIR}/$1-packages.md"
 }
 
 test_firmware() {
@@ -237,6 +264,8 @@ test_firmware() {
 		screenshot "${_fw}-install"
 		die "${_fw}: the installer exited without writing to the disk. See ${OUT_DIR}/${_fw}-install.*"
 	fi
+
+	read_packages "${_fw}"
 
 	echo "# ${_fw}: booting the installed system"
 	if ! run_qemu "${_fw}" "${BOOT_TIMEOUT}" "${_fw}-boot"; then

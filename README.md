@@ -8,15 +8,17 @@
 
 ### ISO
 
-Installer images are built from the current Debian and Devuan netinst releases. Both boot on BIOS and UEFI machines, and both keep the upstream signed Secure Boot chain.
+Installer images are built from the current Debian and Devuan netinst releases, and the notes of each release give their versions. Both boot on BIOS and UEFI machines, and both keep the upstream signed Secure Boot chain.
 
-- [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-13.7.0-amd64.iso)
-- [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-6.1.1-amd64.iso)
+- [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-amd64.iso)
+- [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-amd64.iso)
+
+The release page also has the same images under versioned names, such as `dreamweaver-3.1.0-debian-amd64.iso`, and a list of every package an install gets with a link to its source, such as `dreamweaver-3.1.0-debian-packages.md`.
 
 To verify the integrity of a downloaded image, run the following:
 
 ```console
-$ iso=dreamweaver-debian-13.7.0-amd64.iso
+$ iso=dreamweaver-debian-amd64.iso
 $ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}"
 $ wget "https://github.com/h3nc4/Dreamweaver/releases/latest/download/${iso}.asc"
 $ wget -qO- https://h3nc4.com/dreamweaver.asc | gpg --import
@@ -29,6 +31,15 @@ If you see an output similar to the following, the image is verified:
 gpg: Signature made Sun Feb 16 18:40:30 2025 UTC
 gpg:                using RSA key 3BC15CA502A834A6927527DA6B8614EABCBC4AA4
 gpg: Good signature from "Dreamweaver <me@h3nc4.com>" [unknown]
+```
+
+`SHA256SUMS` lists a checksum for every file in the release, and `SHA256SUMS.asc` signs it. With both in the directory of the download, one signature check verifies the files beside them.
+
+```console
+$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/SHA256SUMS
+$ wget https://github.com/h3nc4/Dreamweaver/releases/latest/download/SHA256SUMS.asc
+$ gpg --verify SHA256SUMS.asc SHA256SUMS
+$ sha256sum --ignore-missing -c SHA256SUMS
 ```
 
 ### Script

@@ -149,7 +149,7 @@ jobs:
             -v "${PWD}:/iso:ro" \
             --entrypoint /iso/scripts/verify-iso.sh \
             "${{ steps.dev_image.outputs.ref }}" \
-            "$(printf '/iso/%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
+            "$(printf '/iso/%s\n' dreamweaver-*-${{ matrix.distro }}-amd64.iso)"
 
   dev-image-cleanup:
     name: Clean Up Dev Image

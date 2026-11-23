@@ -25,3 +25,4 @@ set -e
 cd "$(dirname "$0")/../"
 
 ./scripts/lint.sh -c
+./scripts/test-release.sh

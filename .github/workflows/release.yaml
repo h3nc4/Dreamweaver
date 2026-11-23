@@ -33,6 +33,14 @@ jobs:
           fetch-depth: 0
       - name: Verify tag is on master branch
         run: git merge-base --is-ancestor ${{ github.sha }} origin/master
+      # VERSION names every artifact, so a tag that disagrees with it would publish files
+      # named after another release.
+      - name: Verify tag matches VERSION
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "v$(cat VERSION)" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match VERSION $(cat VERSION)"
+            exit 1
+          fi
 
   prepare:
     name: Prepare environment
@@ -45,7 +53,7 @@ jobs:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - id: version
-        run: echo "version=${GITHUB_REF_NAME#v}" >>"${GITHUB_OUTPUT}"
+        run: echo "version=$(cat VERSION)" >>"${GITHUB_OUTPUT}"
       - id: dev_image
         run: echo "ref=$(./scripts/devcontainer-image.sh)" >>"${GITHUB_OUTPUT}"
 
@@ -89,6 +97,8 @@ jobs:
       fail-fast: false
       matrix:
         distro: [debian, devuan]
+    env:
+      ISO: dreamweaver-${{ needs.prepare.outputs.version }}-${{ matrix.distro }}-amd64.iso
     steps:
       - name: Run actions/checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -110,19 +120,17 @@ jobs:
             -v "${PWD}:/iso:ro" \
             --entrypoint /iso/scripts/verify-iso.sh \
             "${{ needs.prepare.outputs.dev-image }}" \
-            "$(printf '/iso/%s\n' dreamweaver-${{ matrix.distro }}-*.iso)"
+            "/iso/${ISO}"
       - name: Import gpg key
         run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       - name: Sign image
         run: |
-          for iso in dreamweaver-${{ matrix.distro }}-*.iso; do
-            gpg --batch --yes --pinentry-mode loopback \
-              --passphrase "$GPG_PASSPHRASE" \
-              --detach-sign --armor -o "${iso}.asc" "${iso}"
-            gpg --verify "${iso}.asc" "${iso}"
-          done
+          gpg --batch --yes --pinentry-mode loopback \
+            --passphrase "$GPG_PASSPHRASE" \
+            --detach-sign --armor -o "${ISO}.asc" "${ISO}"
+          gpg --verify "${ISO}.asc" "${ISO}"
         env:
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
       - name: Run actions/upload-artifact
@@ -130,37 +138,138 @@ jobs:
         with:
           name: image-${{ matrix.distro }}
           path: |
-            dreamweaver-${{ matrix.distro }}-*.iso
-            dreamweaver-${{ matrix.distro }}-*.iso.asc
+            ${{ env.ISO }}
+            ${{ env.ISO }}.asc
           retention-days: 1
+
+  # The package list comes from a real install of the unattended test image, the only point
+  # where the set the mirror resolves to is known.
+  packages:
+    name: List ${{ matrix.distro }} Packages
+    runs-on: ubuntu-latest
+    needs: prepare
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [debian, devuan]
+    steps:
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      # Authenticated pulls, which anonymous rate limits can refuse.
+      - name: Run docker/login-action
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Confirm the runner has KVM
+        run: test -e /dev/kvm
+      - name: Build the unattended test image
+        run: ./scripts/build-iso.sh -d "${{ matrix.distro }}" -t
+      - name: Install and boot
+        run: |
+          docker run --rm \
+            --device /dev/kvm \
+            -v "${PWD}:/workspaces/Dreamweaver" \
+            -w /workspaces/Dreamweaver \
+            --entrypoint /workspaces/Dreamweaver/scripts/test-install.sh \
+            --user root \
+            "${{ needs.prepare.outputs.dev-image }}" \
+            -f uefi \
+            "dreamweaver-${{ needs.prepare.outputs.version }}-${{ matrix.distro }}-amd64.iso"
+      - name: Write the package source list
+        run: |
+          base="$(./scripts/cook-image.sh -d "${{ matrix.distro }}" -P)"
+          flags="$(sed -n "s/^DW_INSTALL_FLAGS='\(.*\)'\$/\1/p" scratch/boot-test/uefi-packages.raw)"
+          ./scripts/package-sources.sh \
+            -t "Dreamweaver ${{ needs.prepare.outputs.version }} package sources, ${DISTRO_NAME} ${base}" \
+            -p "${flags}" \
+            scratch/boot-test/uefi-packages.txt \
+            >"dreamweaver-${{ needs.prepare.outputs.version }}-${{ matrix.distro }}-packages.md"
+        env:
+          DISTRO_NAME: ${{ matrix.distro == 'debian' && 'Debian' || 'Devuan' }}
+      - name: Run actions/upload-artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: packages-${{ matrix.distro }}
+          path: dreamweaver-${{ needs.prepare.outputs.version }}-${{ matrix.distro }}-packages.md
+          retention-days: 1
+      - name: Run actions/upload-artifact
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: packages-test-${{ matrix.distro }}
+          path: |
+            scratch/boot-test/*.log
+            scratch/boot-test/*.raw
+            scratch/boot-test/*.ppm
+          retention-days: 7
+          if-no-files-found: ignore
 
   release:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: [payload, images]
+    needs: [prepare, payload, images, packages]
     permissions:
       contents: write
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
+      # The whole history, so the notes can find the previous tag.
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
       - name: Run actions/download-artifact
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
+          path: dist
           merge-multiple: true
       - name: Confirm every artifact arrived signed
         run: |
           set -e
-          test -s dreamweaver.tar.gz
-          test -s dreamweaver.tar.gz.asc
+          test -s dist/dreamweaver.tar.gz
+          test -s dist/dreamweaver.tar.gz.asc
           for distro in debian devuan; do
-            iso="$(printf '%s\n' dreamweaver-"${distro}"-*.iso | head -n 1)"
-            test -s "${iso}"
-            test -s "${iso}.asc"
+            test -s "dist/dreamweaver-${VERSION}-${distro}-amd64.iso"
+            test -s "dist/dreamweaver-${VERSION}-${distro}-amd64.iso.asc"
+            test -s "dist/dreamweaver-${VERSION}-${distro}-packages.md"
           done
+      # Release assets cannot alias one another, so the README's latest/download links need
+      # a real file under a name without the version.
+      - name: Copy images to stable names
+        run: |
+          for distro in debian devuan; do
+            cp "dist/dreamweaver-${VERSION}-${distro}-amd64.iso" "dist/dreamweaver-${distro}-amd64.iso"
+            cp "dist/dreamweaver-${VERSION}-${distro}-amd64.iso.asc" "dist/dreamweaver-${distro}-amd64.iso.asc"
+          done
+      - name: Import gpg key
+        run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Sign package lists and checksums
+        run: |
+          set -e
+          sign() {
+            gpg --batch --yes --pinentry-mode loopback \
+              --passphrase "$GPG_PASSPHRASE" \
+              --detach-sign --armor -o "$1.asc" "$1"
+            gpg --verify "$1.asc" "$1"
+          }
+          for list in dist/dreamweaver-*-packages.md; do
+            sign "${list}"
+          done
+          (cd dist && sha256sum -- *) >SHA256SUMS
+          mv SHA256SUMS dist/SHA256SUMS
+          sign dist/SHA256SUMS
+          (cd dist && sha256sum -c SHA256SUMS)
+        env:
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Write release notes
+        run: ./scripts/release-notes.sh dist/* >release-notes.md
       - name: Run softprops/action-gh-release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3
         with:
-          generate_release_notes: true
-          files: |
-            dreamweaver.tar.gz
-            dreamweaver.tar.gz.asc
-            dreamweaver-*.iso
-            dreamweaver-*.iso.asc
+          body_path: release-notes.md
+          files: dist/*

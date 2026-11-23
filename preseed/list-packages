@@ -1,0 +1,39 @@
+#!/bin/sh
+#
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+# Prints the installed packages to the console for test-install.sh. Inline in late_command,
+# the same commands failed the finish step with no output.
+
+list=/target/root/dreamweaver-packages.txt
+
+# The format `scripts/package-sources.sh -q` prints, which scripts/test-release.sh checks.
+# shellcheck disable=SC2016
+chroot /target dpkg-query -W -f='${db:Status-Abbrev} ${Package} ${Version} ${source:Package} ${source:Version} ${Homepage}\n' |
+	grep '^ii' >"${list}"
+
+# late-command deletes the target's copy of the profile, so it is exported again from debconf.
+/profile-select --export /tmp/dw-packages.profile || :
+
+{
+	echo DREAMWEAVER-PACKAGES-BEGIN
+	cat /tmp/dw-packages.profile "${list}"
+	echo "DREAMWEAVER-PACKAGES-END $(wc -l <"${list}")"
+} >/dev/console
+
+exit 0
