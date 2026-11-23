@@ -71,7 +71,7 @@ shift $((OPTIND - 1))
 
 case "${DISTRO}" in
 debian)
-	BASE_VERSION="${BASE_VERSION:-13.7.0}"
+	BASE_VERSION="${BASE_VERSION:-13.8.0}"
 	BASE_ISO="debian-${BASE_VERSION}-amd64-netinst.iso"
 	BASE_URL="https://cdimage.debian.org/debian-cd/${BASE_VERSION}/amd64/iso-cd"
 	SUMS='SHA256SUMS'
