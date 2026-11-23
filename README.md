@@ -68,9 +68,9 @@ Installing on an already running system, the same choices are flags:
 - **`-v`**: set up virtualization tools (QEMU, KVM, libvirt).
 - **`-h`**: headless, with no graphical session. Overrides `-x`.
 - **`-x`**: install the Xorg session. The default unless `-h` is given.
-- **`-m <mirror>`**: use a custom Debian or Devuan mirror. If omitted, the default is:
-  - `http://deb.debian.org/debian/` or
-  - `http://deb.devuan.org/merged/`
+- **`-m <mirror>`**: use this one Debian or Devuan mirror. If omitted, the default is:
+  - `https://deb.debian.org/debian/` on Debian, or
+  - on Devuan, the HTTPS mirrors in `mirrors/devuan.list`, installed as `/etc/apt/mirrors/devuan.list` and read through apt's `mirror+file:` method. It lists only mirrors that serve Debian's packages themselves rather than redirecting to `deb.debian.org`, and `scripts/devuan-mirrors.sh` regenerates it.
 
 The installation is a set of numbered steps under `install.d/`, and any of them can be run on its own. Running `./install` again is safe. Each step is written so that a second run repeats only what a first run left undone.
 

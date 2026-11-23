@@ -1,0 +1,79 @@
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Devuan Mirror List
+
+on:
+  schedule:
+    - cron: "41 4 * * 1" # Mondays at 04:41 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Refresh mirrors/devuan.list
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      # A pull request opened with the job token doesn't start any workflow run, so its
+      # required checks would never report.
+      - name: Mint an app token
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: "4811373" # the automerge app, whose key is already a secret here
+          private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
+      - name: Run actions/checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: master
+          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0 # dev-image diffs against the base to spot image changes
+      - name: Run docker/login-action
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Run h3nc4/dev-image-action
+        uses: h3nc4/dev-image-action@f7c620dd589b7ee84c3dcadce0334b43a5ac1ac3 # v3
+      - name: Regenerate the list
+        run: $DEV_RUN -c './scripts/devuan-mirrors.sh'
+      - name: Open a pull request
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          BRANCH: update-devuan-mirror-list
+        run: |
+          if git diff --quiet -- mirrors/devuan.list; then
+            echo "mirrors/devuan.list is current"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "${BRANCH}"
+          git add mirrors/devuan.list
+          git commit -m "update devuan mirror list"
+          git push --force origin "${BRANCH}"
+          if [ -z "$(gh pr list --head "${BRANCH}" --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base master --head "${BRANCH}" \
+              --title "update devuan mirror list" \
+              --body "Refreshes mirrors/devuan.list from the Devuan mirror registry, keeping only active HTTPS mirrors that serve Debian packages themselves."
+          fi

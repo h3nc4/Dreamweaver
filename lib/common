@@ -113,15 +113,17 @@ export DW_DISTRO
 
 case "${DW_DISTRO}" in
 devuan)
-	DW_MIRROR="${DW_MIRROR:-http://deb.devuan.org/merged}"
+	DW_MIRROR_LIST='/etc/apt/mirrors/devuan.list'
+	DW_MIRROR="${DW_MIRROR:-mirror+file:${DW_MIRROR_LIST}}"
 	DW_KEYRING="${DW_KEYRING:-/usr/share/keyrings/devuan-archive-keyring.gpg}"
 	;;
 *)
-	DW_MIRROR="${DW_MIRROR:-http://deb.debian.org/debian/}"
+	DW_MIRROR_LIST=''
+	DW_MIRROR="${DW_MIRROR:-https://deb.debian.org/debian/}"
 	DW_KEYRING="${DW_KEYRING:-/usr/share/keyrings/debian-archive-keyring.gpg}"
 	;;
 esac
-export DW_MIRROR DW_KEYRING
+export DW_MIRROR DW_MIRROR_LIST DW_KEYRING
 
 if dw_has_systemd; then
 	DW_SYSTEMD=y

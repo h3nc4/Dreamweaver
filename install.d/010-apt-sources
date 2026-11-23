@@ -12,6 +12,22 @@ set -e
 # stable, testing and unstable, testing preferred. Without the pins apt would pull the
 # whole system to unstable, so they matter as much as the sources.
 
+# apt cannot verify the HTTPS sources below until ca-certificates is installed, and a
+# netinst with no tasks may lack it. The sources being replaced fetch it.
+if ! pkg_installed ca-certificates; then
+	as_root apt-get update -qq || die 'apt-get update failed'
+	apt_install ca-certificates || die 'could not install ca-certificates'
+fi
+
+# The Devuan default. deb.devuan.org round-robins to mirrors that may redirect Debian's
+# packages to deb.debian.org, which the list leaves out.
+if [ -n "${DW_MIRROR_LIST}" ] && [ "${DW_MIRROR}" = "mirror+file:${DW_MIRROR_LIST}" ]; then
+	as_root mkdir -p "$(dirname "${DW_MIRROR_LIST}")"
+	as_root install -m 644 "${DW_ROOT}/mirrors/${DW_DISTRO}.list" "${DW_MIRROR_LIST}"
+elif [ -n "${DW_MIRROR_LIST}" ]; then
+	as_root rm -f "${DW_MIRROR_LIST}"
+fi
+
 as_root rm -f /etc/apt/sources.list
 
 as_root tee /etc/apt/sources.list.d/dreamweaver.sources >/dev/null <<SOURCES
