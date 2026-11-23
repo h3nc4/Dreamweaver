@@ -4,11 +4,22 @@
 
 ![screenshot.png](./pics/screenshot.png)
 
+## Principles
+
+- **Minimal**: dwm on Xorg, started at login without a desktop environment or display manager.
+- **Free software by default**: packages come from `main`, plus `non-free-firmware` for device firmware. Proprietary software such as Steam is opt-in, through the gaming set or `-g`.
+- **Debian or Devuan**: one image per base, and both install the same system.
+- **No systemd on Devuan**: the Devuan image installs with a non-systemd init.
+- **Secure Boot kept**: the Debian image boots its installer with Secure Boot on, through Debian's own signed boot chain.
+- **Signed**: every image and the install script are signed with the Dreamweaver key, and so are the dotfiles, dwm, st, dmenu and sxac releases the installer downloads.
+
+The [FAQ](docs/faq.md) covers requirements, installing, encryption, updates and drivers.
+
 ## Download
 
 ### ISO
 
-Installer images are built from the current Debian and Devuan netinst releases, and the notes of each release give their versions. Both boot on BIOS and UEFI machines, and both keep the upstream signed Secure Boot chain.
+Installer images are built from the current Debian and Devuan netinst releases, and the notes of each release give their versions. Both boot on BIOS and UEFI machines. The Debian image keeps the upstream signed Secure Boot chain, and the Devuan image needs Secure Boot off, as upstream Devuan does.
 
 - [Debian based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-debian-amd64.iso)
 - [Devuan based image](https://github.com/h3nc4/Dreamweaver/releases/latest/download/dreamweaver-devuan-amd64.iso)
