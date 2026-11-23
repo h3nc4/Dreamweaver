@@ -9,7 +9,7 @@ set -e
 # shellcheck source=lib/common
 . "$(dirname "$0")/../lib/common"
 
-# A named profile carrying arkenfox's user.js. dwm and dwl launch "firefox -P me", so
+# A named profile carrying arkenfox's user.js. dwm launches "firefox -P me", so
 # profiles.ini is untouched.
 
 enabled "${DW_HEADLESS}" && skip 'headless install'

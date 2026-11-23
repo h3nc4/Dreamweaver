@@ -182,7 +182,7 @@ blacklist nouveau
 blacklist nova-core
 options nouveau modeset=0
 
-# Required for Wayland, and for Xorg to get a modesetting-capable device.
+# Required for Xorg to get a modesetting-capable device.
 options nvidia-drm modeset=1
 
 # Suspend and resume. Without the first, video memory is not saved and the session comes
