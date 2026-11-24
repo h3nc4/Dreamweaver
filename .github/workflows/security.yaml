@@ -26,6 +26,7 @@ on:
     branches:
       - "master"
       - "release/*"
+      - "deps"
   schedule:
     - cron: "23 3 * * *" # Daily at 03:23 UTC
 

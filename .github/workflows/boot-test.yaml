@@ -41,6 +41,7 @@ on:
   pull_request:
     branches:
       - "master"
+      - "deps"
     paths:
       - "scripts/cook-image.sh"
       - "preseed/**"

@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "master"
+      - "deps"
     paths:
       - "docker/dev.Dockerfile"
       - "scripts/entrypoint.sh"
@@ -23,7 +24,8 @@ jobs:
     name: Pin the next dev container
     if: >-
       github.event_name == 'pull_request' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref != 'deps'
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-bump-${{ github.ref }}

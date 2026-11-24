@@ -1,0 +1,51 @@
+# Copyright (C) 2026  Henrique Almeida <me@h3nc4.com>
+#
+# This file is part of Dreamweaver.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+name: Dependency branch
+
+on:
+  push:
+    branches:
+      - "master"
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  deps:
+    name: Sync or promote deps
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request an app token
+        id: app-token
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: "4811373"
+          private-key: ${{ secrets.AUTOMERGE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
+      - name: Run h3nc4/deps-branch-action
+        uses: h3nc4/deps-branch-action@5fdeef601def20d5665111abdc0a5333745bb42c # v1
+        with:
+          token: ${{ steps.app-token.outputs.token }}
