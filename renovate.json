@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:best-practices"
+    "config:best-practices",
+    "github>h3nc4/deps-branch-action"
   ],
   "reviewers": [
     "h3nc4"
@@ -39,11 +40,6 @@
         "major"
       ],
       "automerge": false
-    },
-    {
-      "description": "Majors never automerge, so rebase them only on a conflict rather than rerunning CI each time main moves",
-      "matchUpdateTypes": ["major"],
-      "rebaseWhen": "conflicted"
     }
   ]
 }
